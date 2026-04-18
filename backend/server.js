@@ -26,6 +26,19 @@ connectDB();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// CORS configuration this is for main hosting
+/*app.use(cors({
+  origin: [
+    'http://localhost:8080', 
+    'http://127.0.0.1:8080', 
+    'http://localhost:5173',
+    'https://tiinyberryy.vercel.app'  // ← ADD YOUR VERCEL URL
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id']
+}));*/
+
 // CORS configuration
 app.use(cors({
   origin: ['http://localhost:8080', 'http://127.0.0.1:8080', 'http://localhost:5173'],

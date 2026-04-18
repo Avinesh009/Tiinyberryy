@@ -117,4 +117,18 @@
 .overflow-x-auto::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+@keyframes slide-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in-down {
+  animation: slide-in-down 0.2s ease-out;
+}
 

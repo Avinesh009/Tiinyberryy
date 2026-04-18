@@ -21,11 +21,11 @@ interface Product {
   badge: string | null;
   image: string;
   category: string;
-  subcategory?: string;
   age?: string;
   description?: string;
   sizes?: string[];
   colors?: Color[];
+  subcategory?: string;
 }
 
 interface WishlistItem {
@@ -58,21 +58,17 @@ const CategoryPage = () => {
     }
     if (type === 'collection') {
       const collectionMap: { [key: string]: string } = {
-        'thottil': 'Thottil Collection',
+        'newborn': 'New Born Collection',
         'clothing': 'Clothing Collection',
+        'thottil': 'Thottil Collection',
         'bathing': 'Bathing Essentials',
         'bedding': 'Bedding Collection',
-        'newborn': 'Newborn Essentials',
-        'accessories': 'Baby Accessories',
-        'essentials': 'Essential Kits'
+        'accessories': 'Nursery & Accessories'
       };
       return collectionMap[value || ''] || 'Shop by Collection';
     }
     if (type === 'subcategory') {
-      // Format subcategory name for display
-      return value ? value.split('-').map(word => 
-        word.charAt(0).toUpperCase() + word.slice(1)
-      ).join(' ') : 'Products';
+      return value || 'Products';
     }
     return 'Products';
   };
@@ -103,7 +99,7 @@ const CategoryPage = () => {
         
         const data = await response.json();
         console.log('Received products:', data.length);
-        setProducts(data);
+        setProducts(Array.isArray(data) ? data : []);
         
       } catch (error) {
         console.error('Error fetching products:', error);
@@ -170,16 +166,13 @@ const CategoryPage = () => {
   const handleAdd = async (product: Product, e: React.MouseEvent) => {
     e.stopPropagation();
     
-    // For category page quick add, use default values
     let selectedSize = '';
     let selectedColor = '';
     
-    // If product has sizes and not "One Size", use first size
     if (product.sizes && product.sizes.length > 0 && product.sizes[0] !== 'One Size') {
       selectedSize = product.sizes[0];
     }
     
-    // If product has colors, use first color
     if (product.colors && product.colors.length > 0) {
       selectedColor = product.colors[0].name;
     }
@@ -244,7 +237,7 @@ const CategoryPage = () => {
                   onClick={() => window.location.reload()}
                   className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"
                 >
-                  Retry
+                  Try Again
                 </button>
               </div>
             </div>
