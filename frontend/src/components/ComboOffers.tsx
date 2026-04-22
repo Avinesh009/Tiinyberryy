@@ -10,7 +10,7 @@ interface ComboProduct {
     price: number;
     image: string;
     productId: number;
-  };
+  } | null;
   quantity: number;
 }
 
@@ -46,11 +46,23 @@ const ComboOffers = () => {
       const response = await fetch(`${API_URL}/combos`);
       const data = await response.json();
       if (data.success) {
-        const activeCombos = data.combos.filter((combo: ComboOffer) => {
-          if (!combo.isActive) return false;
-          if (combo.endDate && new Date(combo.endDate) < new Date()) return false;
-          return true;
-        });
+        const activeCombos = data.combos
+          .filter((combo: ComboOffer) => {
+            // Check if combo is active
+            if (!combo.isActive) return false;
+            // Check if combo has expired
+            if (combo.endDate && new Date(combo.endDate) < new Date()) return false;
+            // Filter out combos that have all null products
+            const hasValidProducts = combo.products.some(item => item.productId !== null);
+            if (!hasValidProducts) return false;
+            return true;
+          })
+          .map((combo: ComboOffer) => ({
+            ...combo,
+            // Filter out null products from the products array
+            products: combo.products.filter(item => item.productId !== null)
+          }));
+        
         setCombos(activeCombos);
       }
     } catch (error) {
@@ -65,6 +77,9 @@ const ComboOffers = () => {
     
     try {
       for (const item of combo.products) {
+        // Skip if productId is null (should not happen after filtering, but just in case)
+        if (!item.productId) continue;
+        
         const productId = item.productId.productId || parseInt(item.productId._id);
         for (let i = 0; i < item.quantity; i++) {
           await addToCart(productId, 1);
@@ -96,7 +111,31 @@ const ComboOffers = () => {
     return 'Ending soon';
   };
 
-  if (loading) return null;
+  // Loading state with skeleton UI
+  if (loading) {
+    return (
+      <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-[1320px] mx-auto">
+        <div className="text-center mb-10 md:mb-14">
+          <div className="h-6 w-32 bg-gray-200 rounded-full mx-auto mb-3 animate-pulse"></div>
+          <div className="h-10 w-48 bg-gray-200 rounded-lg mx-auto mb-2 animate-pulse"></div>
+          <div className="h-5 w-64 bg-gray-200 rounded mx-auto animate-pulse"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-lg">
+              <div className="h-52 bg-gray-200 animate-pulse"></div>
+              <div className="p-5">
+                <div className="h-6 bg-gray-200 rounded mb-2 animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded mb-4 animate-pulse"></div>
+                <div className="h-20 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   if (combos.length === 0) return null;
 
   return (
@@ -114,6 +153,8 @@ const ComboOffers = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {combos.map((combo, index) => {
           const timeRemaining = getTimeRemaining(combo.endDate);
+          // Filter valid products for this combo
+          const validProducts = combo.products.filter(item => item.productId !== null);
           
           return (
             <div 
@@ -127,6 +168,10 @@ const ComboOffers = () => {
                   src={combo.image || 'https://images.unsplash.com/photo-1522771930-78848d9293e8?w=400&h=300&fit=crop'}
                   alt={combo.name}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  onError={(e) => {
+                    // Fallback if image fails to load
+                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1522771930-78848d9293e8?w=400&h=300&fit=crop';
+                  }}
                 />
                 {/* Discount Badge */}
                 <div className="absolute top-3 left-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg">
@@ -149,16 +194,16 @@ const ComboOffers = () => {
                 </h3>
                 <p className="text-sm text-gray-500 mb-3 line-clamp-2">{combo.description}</p>
                 
-                {/* Products in combo */}
+                {/* Products in combo - with null check */}
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {combo.products.slice(0, 3).map((item, idx) => (
+                  {validProducts.slice(0, 3).map((item, idx) => (
                     <span key={idx} className="text-xs bg-purple-50 text-purple-600 px-2 py-1 rounded-full">
-                      {item.productId.name} {item.quantity > 1 ? `x${item.quantity}` : ''}
+                      {item.productId?.name || 'Product'} {item.quantity > 1 ? `x${item.quantity}` : ''}
                     </span>
                   ))}
-                  {combo.products.length > 3 && (
+                  {validProducts.length > 3 && (
                     <span className="text-xs bg-purple-50 text-purple-600 px-2 py-1 rounded-full">
-                      +{combo.products.length - 3} more
+                      +{validProducts.length - 3} more
                     </span>
                   )}
                 </div>
@@ -191,27 +236,24 @@ const ComboOffers = () => {
                 {/* Action Buttons */}
                 <div className="flex gap-3">
                   <button
-  onClick={() => handleAddComboToCart(combo)}
-  disabled={addingToCart === combo._id}
-  className="flex-1 py-2.5 rounded-full font-medium 
-  border-2 border-purple-300 text-purple-600 bg-white
-
-  transition-all duration-300 ease-out
-  flex items-center justify-center gap-2
-
-  hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-400
-  hover:text-white hover:border-transparent
-  hover:scale-105 hover:shadow-md hover:shadow-purple-200/40
-
-  active:scale-95
-  disabled:opacity-50 disabled:cursor-not-allowed"
->
-  <ShoppingBag 
-    size={16} 
-    className="transition-transform duration-300 group-hover:scale-110" 
-  />
-  {addingToCart === combo._id ? 'Adding...' : 'Add Combo to Cart'}
-</button>
+                    onClick={() => handleAddComboToCart(combo)}
+                    disabled={addingToCart === combo._id || validProducts.length === 0}
+                    className="flex-1 py-2.5 rounded-full font-medium 
+                    border-2 border-purple-300 text-purple-600 bg-white
+                    transition-all duration-300 ease-out
+                    flex items-center justify-center gap-2
+                    hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-400
+                    hover:text-white hover:border-transparent
+                    hover:scale-105 hover:shadow-md hover:shadow-purple-200/40
+                    active:scale-95
+                    disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ShoppingBag 
+                      size={16} 
+                      className="transition-transform duration-300 group-hover:scale-110" 
+                    />
+                    {addingToCart === combo._id ? 'Adding...' : 'Add Combo to Cart'}
+                  </button>
 
                   <button
                     onClick={() => navigate(`/combo/${combo._id}`)}
