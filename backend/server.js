@@ -15,6 +15,10 @@ import adminRoutes from './routes/admin.js';
 import uploadRoutes from './routes/upload.js';
 import subcategoryRoutes from './routes/subcategories.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import shippingRoutes from './routes/shipping.js';
+import combosRoutes from './routes/combo.js';
+
+// Add after other routes
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,7 +31,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // CORS configuration this is for main hosting
-/*app.use(cors({
+app.use(cors({
   origin: [
     'http://localhost:8080', 
     'http://127.0.0.1:8080', 
@@ -37,15 +41,15 @@ const PORT = process.env.PORT || 5000;
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id']
-}));*/
+}));
 
 // CORS configuration
-app.use(cors({
+/*app.use(cors({
   origin: ['http://localhost:8080', 'http://127.0.0.1:8080', 'http://localhost:5173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id']
-}));
+}));*/
 
 app.use(express.json());
 
@@ -63,6 +67,8 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/subcategories', subcategoryRoutes);
+app.use('/api/shipping', shippingRoutes);
+app.use('/api/combos', combosRoutes);
 
 // Debug route - list all endpoints
 app.get('/api/debug-routes', (req, res) => {

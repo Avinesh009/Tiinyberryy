@@ -33,7 +33,6 @@ const EmailOTPLogin = ({ isOpen, onClose, onLogin, message }: EmailOTPLoginProps
     return () => clearInterval(interval);
   }, [timer, resendDisabled]);
 
-  // Fixed: Changed from /api/auth/send-otp to /api/email-otp/send-otp
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
@@ -71,7 +70,6 @@ const EmailOTPLogin = ({ isOpen, onClose, onLogin, message }: EmailOTPLoginProps
     }
   };
 
-  // Fixed: Changed from /api/auth/verify-otp to /api/email-otp/verify-otp
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!otp || otp.length !== 6) {
@@ -116,7 +114,6 @@ const EmailOTPLogin = ({ isOpen, onClose, onLogin, message }: EmailOTPLoginProps
     }
   };
 
-  // Fixed: Changed from /api/auth/resend-otp to /api/email-otp/resend-otp
   const handleResendOTP = async () => {
     if (resendDisabled) return;
     
@@ -161,22 +158,22 @@ const EmailOTPLogin = ({ isOpen, onClose, onLogin, message }: EmailOTPLoginProps
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-slide-in-right">
+      <div className="relative bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-md p-6 border border-purple-200/50 animate-scaleIn">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1 hover:bg-accent rounded-full transition-colors"
+          className="absolute top-4 right-4 p-1 hover:bg-purple-100 rounded-full transition-all duration-300 hover:scale-110"
         >
-          <X size={20} />
+          <X size={20} className="text-gray-500 hover:text-purple-600" />
         </button>
         
         <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-            <Mail size={28} className="text-primary" />
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
+            <Mail size={28} className="text-purple-500" />
           </div>
-          <h2 className="text-2xl font-heading font-light">
+          <h2 className="text-2xl font-heading font-light bg-gradient-to-r from-[#1e1b4b] to-[#5b21b6] bg-clip-text text-transparent">
             {step === 'email' ? 'Login with Email' : 'Enter OTP'}
           </h2>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-gray-500 mt-1">
             {step === 'email' 
               ? 'Enter your email address to get OTP' 
               : `OTP sent to ${email}`}
@@ -184,45 +181,45 @@ const EmailOTPLogin = ({ isOpen, onClose, onLogin, message }: EmailOTPLoginProps
         </div>
         
         {message && (
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-600 text-sm">
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-600 text-sm animate-fadeIn">
             {message}
           </div>
         )}
         
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-600 text-sm">
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-red-600 text-sm animate-shake">
             <AlertCircle size={16} />
             {error}
           </div>
         )}
         
         {success && (
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-green-600 text-sm">
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2 text-green-600 text-sm animate-fadeIn">
             <CheckCircle size={16} />
             {success}
           </div>
         )}
         
         {step === 'email' ? (
-          <form onSubmit={handleSendOTP}>
+          <form onSubmit={handleSendOTP} className="animate-fadeIn">
             <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">Email Address</label>
+              <label className="block text-sm font-medium mb-2 text-[#1e1b4b]">Email Address</label>
               <div className="relative">
-                <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-400" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full pl-10 pr-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
                   placeholder="your@email.com"
                   autoFocus
                   required
                 />
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="text-xs text-gray-500 mt-2">
                 We'll send a 6-digit OTP to this email address
               </p>
-              <p className="text-xs text-primary mt-1">
+              <p className="text-xs text-purple-500 mt-1">
                 ✓ One account per email address
               </p>
             </div>
@@ -230,41 +227,41 @@ const EmailOTPLogin = ({ isOpen, onClose, onLogin, message }: EmailOTPLoginProps
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
+              className="w-full py-2.5 rounded-full font-semibold text-white transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 hover:shadow-purple-300/30 disabled:opacity-50 disabled:hover:scale-100 bg-gradient-to-r from-purple-500 via-purple-400 to-blue-400"
             >
               {loading ? 'Sending OTP...' : 'Send OTP'}
             </button>
           </form>
         ) : (
-          <form onSubmit={handleVerifyOTP}>
+          <form onSubmit={handleVerifyOTP} className="animate-fadeIn">
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Enter 6-Digit OTP</label>
+              <label className="block text-sm font-medium mb-2 text-[#1e1b4b]">Enter 6-Digit OTP</label>
               <input
                 type="text"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-center text-2xl tracking-widest"
+                className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80 text-center text-2xl tracking-widest"
                 placeholder="000000"
                 maxLength={6}
                 autoFocus
                 required
               />
-              <p className="text-xs text-muted-foreground text-center mt-2">
+              <p className="text-xs text-gray-500 text-center mt-2">
                 Check your email inbox (and spam folder)
               </p>
             </div>
             
             <div className="text-center mb-4">
               {timer > 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Resend OTP in <span className="font-semibold">{timer}s</span>
+                <p className="text-sm text-gray-500">
+                  Resend OTP in <span className="font-semibold text-purple-600">{timer}s</span>
                 </p>
               ) : (
                 <button
                   type="button"
                   onClick={handleResendOTP}
                   disabled={resendDisabled}
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm text-purple-500 hover:text-purple-600 hover:underline transition-all"
                 >
                   Resend OTP
                 </button>
@@ -274,7 +271,7 @@ const EmailOTPLogin = ({ isOpen, onClose, onLogin, message }: EmailOTPLoginProps
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
+              className="w-full py-2.5 rounded-full font-semibold text-white transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 hover:shadow-purple-300/30 disabled:opacity-50 disabled:hover:scale-100 bg-gradient-to-r from-purple-500 via-purple-400 to-blue-400"
             >
               {loading ? 'Verifying...' : 'Verify & Login'}
             </button>
@@ -282,11 +279,53 @@ const EmailOTPLogin = ({ isOpen, onClose, onLogin, message }: EmailOTPLoginProps
         )}
         
         <div className="mt-4 text-center">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-gray-500">
             By continuing, you agree to our Terms & Privacy Policy
           </p>
         </div>
       </div>
+
+      <style>{`
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(5px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-5px); }
+          75% { transform: translateX(5px); }
+        }
+        
+        .animate-scaleIn {
+          animation: scaleIn 0.3s ease-out;
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease forwards;
+        }
+        
+        .animate-shake {
+          animation: shake 0.3s ease-in-out;
+        }
+      `}</style>
     </div>
   );
 };

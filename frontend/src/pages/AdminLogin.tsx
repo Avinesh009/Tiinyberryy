@@ -47,7 +47,7 @@ const AdminLogin = () => {
             <LogIn size={32} className="text-primary" />
           </div>
           <h1 className="text-2xl font-bold text-foreground">Admin Login</h1>
-          <p className="text-muted-foreground mt-1">Tiiny Berry Admin Dashboard</p>
+          <p className="text-muted-foreground mt-1">Aazhi Admin Dashboard</p>
         </div>
         
         {error && (
@@ -66,7 +66,7 @@ const AdminLogin = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="admin@tiinyberry.com"
+                placeholder="admin@Aazhi.com"
                 required
               />
             </div>

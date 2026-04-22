@@ -11,6 +11,9 @@ import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
 import NotFound from "@/pages/NotFound";
 import SearchResults from "@/pages/SearchResults";
+import ComboDetails from "@/pages/ComboDetails";
+import CombosPage from "@/pages/Combospage";
+
 
 
 
@@ -29,6 +32,9 @@ function App() {
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/search" element={<SearchResults />} />
+          <Route path="/combo/:id" element={<ComboDetails />} />
+          <Route path="/shop/combos" element={<CombosPage />} />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>

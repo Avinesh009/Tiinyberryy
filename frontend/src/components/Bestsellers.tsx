@@ -56,6 +56,12 @@ const Bestsellers = () => {
         }
       } catch (error) {
         console.error('Failed to fetch products:', error);
+        setProducts([
+          { productId: 1, name: "Organic Cotton Jabla Set", price: 599, originalPrice: 799, badge: "Bestseller", image: defaultImages[0], category: "clothing", sizes: ["0-3 months", "3-6 months"] },
+          { productId: 2, name: "Newborn Essential Kit", price: 1299, originalPrice: null, badge: "New", image: defaultImages[1], category: "essentials", sizes: ["One Size"] },
+          { productId: 3, name: "Muslin Summer Frock", price: 749, originalPrice: 949, badge: null, image: defaultImages[2], category: "clothing", sizes: ["3-6 months", "6-9 months"] },
+          { productId: 4, name: "Muslin Hooded Towel", price: 499, originalPrice: null, badge: "Bestseller", image: defaultImages[3], category: "bath", sizes: ["One Size"] },
+        ]);
       } finally {
         setLoading(false);
       }
@@ -116,7 +122,6 @@ const Bestsellers = () => {
   const handleAdd = async (product: Product, e: React.MouseEvent) => {
     e.stopPropagation();
     
-    // For quick add, select the first size if available
     let selectedSize = '';
     if (product.sizes && product.sizes.length > 0 && product.sizes[0] !== 'One Size') {
       selectedSize = product.sizes[0];
@@ -136,63 +141,95 @@ const Bestsellers = () => {
 
   if (loading) {
     return (
-      <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-[1320px] mx-auto pt-0">
-        <div className="text-center">Loading products...</div>
+      <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-[1320px] mx-auto">
+        <div className="text-center mb-10 md:mb-14">
+          <span className="text-xs md:text-sm uppercase tracking-[0.2em] font-semibold mb-3 inline-block bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+            Our most loved
+          </span>
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-light font-heading max-w-2xl mx-auto bg-gradient-to-r from-[#1e1b4b] to-[#5b21b6] bg-clip-text text-transparent">
+            Bestsellers
+          </h2>
+          <div className="w-16 h-0.5 bg-gradient-to-r from-purple-300 to-blue-300 mx-auto mt-4 rounded-full"></div>
+        </div>
+        <div className="flex justify-center items-center py-12">
+          <div className="inline-block rounded-full h-8 w-8 border-2 border-purple-300 border-t-purple-600 animate-spin"></div>
+        </div>
       </section>
     );
   }
 
+  if (!products.length) {
+    return null;
+  }
+
   return (
-    <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-[1320px] mx-auto pt-0">
-      <div className="mb-10 md:mb-14 reveal">
-        <span className="section-label">Our most loved</span>
-        <h2 className="section-heading">Bestsellers</h2>
+    <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-[1320px] mx-auto">
+      {/* Section Header */}
+      <div className="text-center mb-10 md:mb-14">
+        <span className="text-xs md:text-sm uppercase tracking-[0.2em] font-semibold mb-3 inline-block bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+          Our most loved
+        </span>
+        <h2 className="text-2xl md:text-3xl lg:text-4xl font-light font-heading max-w-2xl mx-auto bg-gradient-to-r from-[#1e1b4b] to-[#5b21b6] bg-clip-text text-transparent">
+          Bestsellers
+        </h2>
+        <div className="w-16 h-0.5 bg-gradient-to-r from-purple-300 to-blue-300 mx-auto mt-4 rounded-full"></div>
       </div>
+
+      {/* Products Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         {products.map((product, index) => (
           <div 
             key={product.productId} 
-            className={`group product-card cursor-pointer reveal reveal-d${index}`}
+            className="group cursor-pointer transition-all duration-300 hover:-translate-y-1 animate-fadeIn"
+            style={{ animationDelay: `${index * 0.1}s` }}
             onClick={() => handleProductClick(product.productId)}
           >
-            <div className="relative overflow-hidden rounded-xl bg-muted" style={{ aspectRatio: "3/4" }}>
+            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-100/30 to-blue-100/30 shadow-md" style={{ aspectRatio: "3/4" }}>
               <img 
                 src={product.image} 
                 alt={product.name} 
                 loading="lazy" 
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = defaultImages[index % defaultImages.length];
+                }}
               />
               {product.badge && (
-                <span className="absolute top-3 left-3 bg-primary text-primary-foreground text-[0.58rem] font-bold uppercase tracking-[0.1em] px-2.5 py-1 rounded-full">
+                <span className="absolute top-3 left-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-[0.58rem] font-bold uppercase tracking-[0.1em] px-2.5 py-1 rounded-full shadow-md">
                   {product.badge}
                 </span>
               )}
               <button
                 onClick={(e) => toggleWish(product.productId, e)}
-                className={`absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-white/90 rounded-full transition-all opacity-0 group-hover:opacity-100 ${wishlisted.includes(product.productId) ? "text-red-500" : "text-muted-foreground"}`}
+                className={`absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110 ${
+                  wishlisted.includes(product.productId) ? "text-red-500" : "text-gray-400 hover:text-red-500"
+                }`}
                 aria-label="Wishlist"
               >
                 <Heart size={14} fill={wishlisted.includes(product.productId) ? "currentColor" : "none"} />
               </button>
             </div>
             <div className="mt-3.5">
-              <h3 className="text-base font-medium text-foreground leading-snug" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+              <h3 className="text-base font-medium text-[#1e1b4b] leading-snug font-serif hover:text-purple-600 transition-colors duration-200">
                 {product.name}
               </h3>
               <div className="mt-1.5 flex items-center gap-2">
-                <span className="text-[0.85rem] font-bold text-primary">Rs. {product.price.toLocaleString()}</span>
+                <span className="text-[0.85rem] font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+                  Rs. {product.price.toLocaleString()}
+                </span>
                 {product.originalPrice && (
-                  <span className="text-[0.78rem] text-muted-foreground line-through">
+                  <span className="text-[0.78rem] text-gray-400 line-through">
                     Rs. {product.originalPrice.toLocaleString()}
                   </span>
                 )}
               </div>
               <button
                 onClick={(e) => handleAdd(product, e)}
-                className={`w-full mt-3 py-2.5 text-[0.68rem] font-bold uppercase tracking-[0.12em] rounded-sm border transition-all duration-300 ${
+                className={`w-full mt-3 py-2.5 text-[0.68rem] font-bold uppercase tracking-[0.12em] rounded-full transition-all duration-300 ${
                   added.includes(product.productId) 
-                    ? "bg-primary border-primary text-primary-foreground" 
-                    : "border-border text-muted-foreground hover:bg-primary hover:border-primary hover:text-primary-foreground"
+                    ? "bg-gradient-to-r from-purple-500 to-purple-400 text-white shadow-md" 
+                    : "border-2 border-purple-200 text-gray-500 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-400 hover:border-transparent hover:text-white hover:shadow-md"
                 }`}
               >
                 {added.includes(product.productId) ? "Added! ✓" : "Add to Cart"}
@@ -201,6 +238,24 @@ const Bestsellers = () => {
           </div>
         ))}
       </div>
+
+      <style>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(15px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.4s ease forwards;
+          opacity: 0;
+        }
+      `}</style>
     </section>
   );
 };

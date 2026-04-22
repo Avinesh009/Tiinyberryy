@@ -165,11 +165,11 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gradient-to-br from-[#f5efff] via-[#e8f0fe] to-[#faf5ff]">
         <AnnouncementBar />
         <Navbar />
         <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="inline-block rounded-full h-8 w-8 border-2 border-purple-300 border-t-purple-600 animate-spin"></div>
         </div>
         <Footer />
       </div>
@@ -178,12 +178,12 @@ const Profile = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gradient-to-br from-[#f5efff] via-[#e8f0fe] to-[#faf5ff]">
         <AnnouncementBar />
         <Navbar />
         <div className="text-center py-20">
           <p className="text-red-500 mb-4">{error}</p>
-          <button onClick={loadUserData} className="px-4 py-2 bg-primary text-white rounded-lg">
+          <button onClick={loadUserData} className="px-6 py-3 rounded-full font-semibold text-white shadow-md transition-all duration-300 hover:scale-105 bg-gradient-to-r from-purple-500 via-purple-400 to-blue-400">
             Try Again
           </button>
         </div>
@@ -193,41 +193,43 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-[#f5efff] via-[#e8f0fe] to-[#faf5ff]">
       <AnnouncementBar />
       <Navbar />
       <main className="pt-8 pb-16">
         <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl md:text-4xl font-heading font-light mb-8">My Profile</h1>
+          <h1 className="text-3xl md:text-4xl font-heading font-light mb-8 bg-gradient-to-r from-[#1e1b4b] to-[#5b21b6] bg-clip-text text-transparent">
+            My Profile
+          </h1>
           
           <div className="grid md:grid-cols-3 gap-8">
             {/* Sidebar */}
             <div className="md:col-span-1">
-              <div className="bg-white border border-border rounded-xl p-6 sticky top-24">
+              <div className="bg-white/70 backdrop-blur-md border border-purple-200/50 rounded-2xl p-6 sticky top-24 shadow-lg transition-all duration-300 hover:shadow-purple-100/50">
                 <div className="text-center mb-6">
-                  <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <User size={48} className="text-primary" />
+                  <div className="w-24 h-24 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
+                    <User size={48} className="text-purple-500" />
                   </div>
-                  <h2 className="text-xl font-semibold">{user?.name || 'Customer'}</h2>
-                  <p className="text-muted-foreground text-sm">{user?.email}</p>
+                  <h2 className="text-xl font-semibold text-[#1e1b4b]">{user?.name || 'Customer'}</h2>
+                  <p className="text-gray-500 text-sm">{user?.email}</p>
                 </div>
                 
                 <div className="space-y-2">
                   <button
                     onClick={() => navigate('/profile')}
-                    className="w-full text-left px-4 py-2 bg-primary/10 text-primary rounded-lg font-medium"
+                    className="w-full text-left px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-medium shadow-md"
                   >
                     Profile Information
                   </button>
                   <button
                     onClick={() => navigate('/orders')}
-                    className="w-full text-left px-4 py-2 hover:bg-accent rounded-lg transition-colors"
+                    className="w-full text-left px-4 py-2 hover:bg-purple-50 rounded-xl transition-all duration-300 text-[#1e1b4b] hover:text-purple-600"
                   >
                     My Orders ({orders.length})
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2"
+                    className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl transition-all duration-300 flex items-center gap-2"
                   >
                     <LogOut size={16} />
                     Logout
@@ -239,13 +241,15 @@ const Profile = () => {
             {/* Main Content */}
             <div className="md:col-span-2">
               {/* Profile Info */}
-              <div className="bg-white border border-border rounded-xl p-6 mb-6">
+              <div className="bg-white/70 backdrop-blur-md border border-purple-200/50 rounded-2xl p-6 mb-6 shadow-lg transition-all duration-300 hover:shadow-purple-100/50">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-semibold">Personal Information</h2>
+                  <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+                    Personal Information
+                  </h2>
                   {!editing ? (
                     <button
                       onClick={() => setEditing(true)}
-                      className="flex items-center gap-2 text-primary hover:underline"
+                      className="flex items-center gap-2 text-purple-500 hover:text-purple-600 transition-all duration-300 hover:scale-105"
                     >
                       <Edit2 size={16} />
                       Edit
@@ -254,13 +258,13 @@ const Profile = () => {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setEditing(false)}
-                        className="p-1 hover:bg-accent rounded"
+                        className="p-1 hover:bg-purple-100 rounded-full transition-all"
                       >
-                        <X size={18} />
+                        <X size={18} className="text-gray-500" />
                       </button>
                       <button
                         onClick={handleUpdateProfile}
-                        className="p-1 text-primary hover:bg-primary/10 rounded"
+                        className="p-1 text-purple-500 hover:bg-purple-100 rounded-full transition-all"
                       >
                         <Save size={18} />
                       </button>
@@ -270,7 +274,7 @@ const Profile = () => {
                 
                 <div className="space-y-4">
                   <div>
-                    <label className="flex items-center gap-2 text-sm font-medium mb-2">
+                    <label className="flex items-center gap-2 text-sm font-medium mb-2 text-[#1e1b4b]">
                       <User size={16} /> Full Name
                     </label>
                     {editing ? (
@@ -278,15 +282,15 @@ const Profile = () => {
                         type="text"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
                       />
                     ) : (
-                      <p className="text-foreground">{user?.name || 'Not set'}</p>
+                      <p className="text-[#1e1b4b]">{user?.name || 'Not set'}</p>
                     )}
                   </div>
                   
                   <div>
-                    <label className="flex items-center gap-2 text-sm font-medium mb-2">
+                    <label className="flex items-center gap-2 text-sm font-medium mb-2 text-[#1e1b4b]">
                       <Mail size={16} /> Email Address
                     </label>
                     {editing ? (
@@ -294,15 +298,15 @@ const Profile = () => {
                         type="email"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-4 py-2 border border-border rounded-lg"
+                        className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
                       />
                     ) : (
-                      <p className="text-foreground">{user?.email || 'Not set'}</p>
+                      <p className="text-[#1e1b4b]">{user?.email || 'Not set'}</p>
                     )}
                   </div>
                   
                   <div>
-                    <label className="flex items-center gap-2 text-sm font-medium mb-2">
+                    <label className="flex items-center gap-2 text-sm font-medium mb-2 text-[#1e1b4b]">
                       <Phone size={16} /> Phone Number
                     </label>
                     {editing ? (
@@ -310,25 +314,25 @@ const Profile = () => {
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full px-4 py-2 border border-border rounded-lg"
+                        className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
                       />
                     ) : (
-                      <p className="text-foreground">{user?.phone || 'Not set'}</p>
+                      <p className="text-[#1e1b4b]">{user?.phone || 'Not set'}</p>
                     )}
                   </div>
                 </div>
               </div>
               
               {/* Shipping Address */}
-              <div className="bg-white border border-border rounded-xl p-6 mb-6">
+              <div className="bg-white/70 backdrop-blur-md border border-purple-200/50 rounded-2xl p-6 mb-6 shadow-lg transition-all duration-300 hover:shadow-purple-100/50">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-semibold flex items-center gap-2">
+                  <h2 className="text-xl font-semibold flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
                     <Home size={20} /> Shipping Address
                   </h2>
                   {defaultAddress && !editingAddress && (
                     <button
                       onClick={() => setEditingAddress(true)}
-                      className="flex items-center gap-2 text-primary hover:underline"
+                      className="flex items-center gap-2 text-purple-500 hover:text-purple-600 transition-all duration-300 hover:scale-105"
                     >
                       <Edit2 size={16} />
                       Edit Address
@@ -338,13 +342,13 @@ const Profile = () => {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setEditingAddress(false)}
-                        className="p-1 hover:bg-accent rounded"
+                        className="p-1 hover:bg-purple-100 rounded-full transition-all"
                       >
-                        <X size={18} />
+                        <X size={18} className="text-gray-500" />
                       </button>
                       <button
                         onClick={handleUpdateAddress}
-                        className="p-1 text-primary hover:bg-primary/10 rounded"
+                        className="p-1 text-purple-500 hover:bg-purple-100 rounded-full transition-all"
                       >
                         <Save size={18} />
                       </button>
@@ -354,104 +358,106 @@ const Profile = () => {
                 
                 {!defaultAddress ? (
                   <div className="text-center py-8">
-                    <MapPin size={48} className="mx-auto text-muted-foreground mb-3" />
-                    <p className="text-muted-foreground">No address saved yet</p>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <MapPin size={48} className="mx-auto text-purple-300 mb-3" />
+                    <p className="text-gray-500">No address saved yet</p>
+                    <p className="text-sm text-gray-400 mt-1">
                       Your shipping address will appear here after your first order
                     </p>
                   </div>
                 ) : editingAddress ? (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium mb-1">Full Name</label>
+                      <label className="block text-sm font-medium mb-1 text-[#1e1b4b]">Full Name</label>
                       <input
                         type="text"
                         value={addressForm.fullName}
                         onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })}
-                        className="w-full px-4 py-2 border border-border rounded-lg"
+                        className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">Address</label>
+                      <label className="block text-sm font-medium mb-1 text-[#1e1b4b]">Address</label>
                       <input
                         type="text"
                         value={addressForm.address}
                         onChange={(e) => setAddressForm({ ...addressForm, address: e.target.value })}
-                        className="w-full px-4 py-2 border border-border rounded-lg"
+                        className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium mb-1">City</label>
+                        <label className="block text-sm font-medium mb-1 text-[#1e1b4b]">City</label>
                         <input
                           type="text"
                           value={addressForm.city}
                           onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
-                          className="w-full px-4 py-2 border border-border rounded-lg"
+                          className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-1">State</label>
+                        <label className="block text-sm font-medium mb-1 text-[#1e1b4b]">State</label>
                         <input
                           type="text"
                           value={addressForm.state}
                           onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
-                          className="w-full px-4 py-2 border border-border rounded-lg"
+                          className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
                         />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium mb-1">Pincode</label>
+                        <label className="block text-sm font-medium mb-1 text-[#1e1b4b]">Pincode</label>
                         <input
                           type="text"
                           value={addressForm.pincode}
                           onChange={(e) => setAddressForm({ ...addressForm, pincode: e.target.value })}
-                          className="w-full px-4 py-2 border border-border rounded-lg"
+                          className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-1">Phone</label>
+                        <label className="block text-sm font-medium mb-1 text-[#1e1b4b]">Phone</label>
                         <input
                           type="tel"
                           value={addressForm.phone}
                           onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
-                          className="w-full px-4 py-2 border border-border rounded-lg"
+                          className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">Email</label>
+                      <label className="block text-sm font-medium mb-1 text-[#1e1b4b]">Email</label>
                       <input
                         type="email"
                         value={addressForm.email}
                         onChange={(e) => setAddressForm({ ...addressForm, email: e.target.value })}
-                        className="w-full px-4 py-2 border border-border rounded-lg"
+                        className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
                       />
                     </div>
                   </div>
                 ) : (
-                  <div className="border border-border rounded-lg p-4">
-                    <p className="font-medium">{defaultAddress.fullName}</p>
-                    <p className="text-sm text-muted-foreground mt-1">{defaultAddress.address}</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="border border-purple-200 rounded-xl p-4 bg-white/50">
+                    <p className="font-medium text-[#1e1b4b]">{defaultAddress.fullName}</p>
+                    <p className="text-sm text-gray-600 mt-1">{defaultAddress.address}</p>
+                    <p className="text-sm text-gray-600">
                       {defaultAddress.city}, {defaultAddress.state} - {defaultAddress.pincode}
                     </p>
-                    <p className="text-sm text-muted-foreground mt-1">Phone: {defaultAddress.phone}</p>
+                    <p className="text-sm text-gray-600 mt-1">Phone: {defaultAddress.phone}</p>
                     {defaultAddress.email && (
-                      <p className="text-sm text-muted-foreground">Email: {defaultAddress.email}</p>
+                      <p className="text-sm text-gray-600">Email: {defaultAddress.email}</p>
                     )}
                   </div>
                 )}
               </div>
               
               {/* Recent Orders */}
-              <div className="bg-white border border-border rounded-xl p-6">
+              <div className="bg-white/70 backdrop-blur-md border border-purple-200/50 rounded-2xl p-6 shadow-lg transition-all duration-300 hover:shadow-purple-100/50">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-semibold">Recent Orders</h2>
+                  <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+                    Recent Orders
+                  </h2>
                   <button
                     onClick={() => navigate('/orders')}
-                    className="text-primary hover:underline text-sm"
+                    className="text-purple-500 hover:text-purple-600 transition-all duration-300 text-sm hover:underline"
                   >
                     View All
                   </button>
@@ -459,11 +465,11 @@ const Profile = () => {
                 
                 {orders.length === 0 ? (
                   <div className="text-center py-8">
-                    <Package size={48} className="mx-auto text-muted-foreground mb-3" />
-                    <p className="text-muted-foreground">No orders yet</p>
+                    <Package size={48} className="mx-auto text-purple-300 mb-3" />
+                    <p className="text-gray-500">No orders yet</p>
                     <button
                       onClick={() => navigate('/')}
-                      className="mt-3 px-4 py-2 bg-primary text-white rounded-lg text-sm"
+                      className="mt-3 px-6 py-2 rounded-full font-semibold text-white shadow-md transition-all duration-300 hover:scale-105 bg-gradient-to-r from-purple-500 via-purple-400 to-blue-400"
                     >
                       Start Shopping
                     </button>
@@ -471,17 +477,19 @@ const Profile = () => {
                 ) : (
                   <div className="space-y-3">
                     {orders.slice(0, 3).map((order) => (
-                      <div key={order._id} className="border border-border rounded-lg p-4">
+                      <div key={order._id} className="border border-purple-200 rounded-xl p-4 bg-white/50 transition-all duration-300 hover:shadow-md">
                         <div className="flex justify-between items-start">
                           <div>
-                            <p className="font-semibold">Order #{order.orderNumber}</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="font-semibold text-[#1e1b4b]">Order #{order.orderNumber}</p>
+                            <p className="text-sm text-gray-500">
                               {new Date(order.createdAt).toLocaleDateString()}
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="font-semibold text-primary">₹{order.total.toLocaleString()}</p>
-                            <p className="text-xs text-muted-foreground capitalize">{order.status}</p>
+                            <p className="font-semibold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+                              ₹{order.total.toLocaleString()}
+                            </p>
+                            <p className="text-xs text-gray-500 capitalize">{order.status}</p>
                           </div>
                         </div>
                       </div>

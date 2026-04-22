@@ -4,119 +4,240 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =========================
+   🌈 THEME COLORS - MY PROFESSIONAL SUGGESTION
+   Light Purple + Light Blue | Modern | Elegant | Readable
+========================= */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* 🌤️ SOFT BACKGROUND COLORS - premium blend */
+    --background: 210 100% 98%;
+    --foreground: 240 20% 22%;
+
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 240 20% 22%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 142 35% 35%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 142 35% 35%;
-    --radius: 0.5rem;
+    --popover-foreground: 240 20% 22%;
+
+    /* 🔵 LIGHT BLUE - primary (softer, more professional) */
+    --primary: 210 80% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    /* 🟣 LIGHT PURPLE - secondary (warm lavender) */
+    --secondary: 270 65% 70%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* 🌸 PERIWINKLE - accent (bridge between purple & blue) */
+    --accent: 230 70% 80%;
+    --accent-foreground: 240 20% 22%;
+
+    --muted: 210 30% 94%;
+    --muted-foreground: 240 10% 45%;
+
+    --border: 220 25% 88%;
+    --input: 220 25% 88%;
+    --ring: 210 80% 65%;
+
+    --destructive: 0 70% 65%;
+    --destructive-foreground: 0 0% 100%;
+
+    --radius: 0.75rem;
   }
 
+  /* 🌙 DARK MODE - deep purple/blue night */
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 142 35% 45%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 142 35% 45%;
+    --background: 240 25% 10%;
+    --foreground: 0 0% 95%;
+
+    --card: 240 25% 14%;
+    --card-foreground: 0 0% 95%;
+
+    --primary: 210 75% 60%;
+    --secondary: 270 60% 60%;
+    --accent: 230 60% 55%;
+
+    --border: 240 20% 25%;
+    --input: 240 20% 25%;
+    --ring: 210 75% 60%;
   }
 }
 
+/* =========================
+   🌈 BASE STYLES - SIGNATURE GRADIENT
+========================= */
 @layer base {
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
     font-family: 'Nunito Sans', sans-serif;
+
+    /* 🎨 MY SIGNATURE GRADIENT: Warm lavender to soft sky blue */
+    background: radial-gradient(ellipse at 20% 25%, #f5efff 0%, #e8f0fe 45%, #faf5ff 70%, #ffffff 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
   }
+
+  /* 🌟 Depth overlay for dimensional feel */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at 80% 70%, rgba(167, 139, 250, 0.08) 0%, rgba(96, 165, 250, 0.06) 50%, transparent 80%);
+    pointer-events: none;
+    z-index: -1;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Cormorant Garamond', serif;
+    letter-spacing: -0.01em;
+    font-weight: 500;
   }
 }
 
+/* =========================
+   ✨ PREMIUM COMPONENTS - PURPLE & BLUE HARMONY
+========================= */
 @layer components {
+
+  /* 🔥 PREMIUM GLASS CARD - frosty lavender */
+  .card-glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(14px);
+    border-radius: 24px;
+    border: 1px solid rgba(167, 139, 250, 0.25);
+    box-shadow: 0 10px 30px rgba(100, 80, 160, 0.06);
+    transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+  }
+
+  .card-glass:hover {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(167, 139, 250, 0.45);
+    box-shadow: 0 20px 40px rgba(100, 80, 180, 0.12);
+    transform: translateY(-3px);
+  }
+
+  /* 🌈 IRIDESCENT BUTTON - purple to blue flow */
+  .btn-soft {
+    @apply px-7 py-2.5 rounded-full font-semibold text-white shadow-md transition-all duration-300;
+    background: linear-gradient(105deg, #a78bfa 0%, #c4b5fd 35%, #60a5fa 100%);
+    background-size: 200% auto;
+    border: none;
+  }
+
+  .btn-soft:hover {
+    transform: scale(1.02) translateY(-2px);
+    background-position: right center;
+    box-shadow: 0 12px 25px rgba(139, 92, 246, 0.3);
+  }
+
+  /* ✨ SECTION LABEL - dual tone shimmer */
   .section-label {
-    @apply block text-xs font-bold uppercase tracking-[0.18em] text-primary mb-2;
+    @apply block text-xs font-bold uppercase tracking-[0.2em] mb-2;
+    background: linear-gradient(120deg, #8b5cf6, #60a5fa);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
   }
+
   .section-heading {
-    @apply text-3xl md:text-4xl font-light text-foreground;
+    @apply text-3xl md:text-4xl font-light;
+    color: #1e1b4b;
   }
+
+  /* 🌸 BEAUTIFUL BADGE - purple/blue hybrid */
+  .badge-lavender {
+    background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(96, 165, 250, 0.15));
+    backdrop-filter: blur(8px);
+    border-radius: 40px;
+    padding: 0.25rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #6d28d9;
+    border: 1px solid rgba(167, 139, 250, 0.35);
+  }
+
+  /* 🎬 ANIMATION - smooth reveal */
   .reveal {
     @apply opacity-0 translate-y-8 transition-all duration-700;
   }
+
   .reveal.revealed {
     @apply opacity-100 translate-y-0;
   }
-  .reveal-d1 {
-    transition-delay: 100ms;
-  }
-  .reveal-d2 {
-    transition-delay: 200ms;
-  }
-  .reveal-d3 {
-    transition-delay: 300ms;
-  }
-  
+
+  .reveal-d1 { transition-delay: 100ms; }
+  .reveal-d2 { transition-delay: 200ms; }
+  .reveal-d3 { transition-delay: 300ms; }
 }
+
+/* =========================
+   📏 UTILITIES - signature purple/blue touches
+========================= */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-/* Custom Scrollbar for Color Selector */
-.overflow-x-auto {
-  scrollbar-width: thin;
-  scrollbar-color: #c1c1c1 #f1f1f1;
+
+/* 🖱️ CUSTOM SCROLLBAR - dreamy lavender */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-.overflow-x-auto::-webkit-scrollbar {
-  height: 6px;
-}
-
-.overflow-x-auto::-webkit-scrollbar-track {
-  background: #f1f1f1;
+::-webkit-scrollbar-track {
+  background: #f0ebfa;
   border-radius: 10px;
 }
 
-.overflow-x-auto::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(145deg, #b9a9e0, #93b4e8);
   border-radius: 10px;
 }
 
-.overflow-x-auto::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(145deg, #a28fd1, #7da0da);
 }
+
+/* 🌊 WAVE DIVIDER - subtle gradient */
+.wave-divider {
+  background: linear-gradient(90deg, transparent, #c4b5fd, #93c5fd, #c4b5fd, transparent);
+  height: 2px;
+  width: 100%;
+  border-radius: 4px;
+}
+
+/* 🎨 GLOW TEXT effect */
+.text-glow-purple {
+  text-shadow: 0 2px 15px rgba(139, 92, 246, 0.25);
+}
+
+/* 🔵 FOCUS RING */
+*:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+/* 🦋 FLOAT ANIMATION */
+@keyframes float-soft {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float-soft 4s ease-in-out infinite;
+}
+
 @keyframes slide-in-down {
   from {
     opacity: 0;
@@ -129,6 +250,192 @@
 }
 
 .animate-slide-in-down {
-  animation: slide-in-down 0.2s ease-out;
+  animation: slide-in-down 0.25s ease-out;
 }
 
+/* 🌸 GRADIENT TEXT helper */
+.gradient-text-pb {
+  background: linear-gradient(125deg, #8b5cf6, #a78bfa, #60a5fa);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* ✨ GLASS INPUT field */
+.input-glass {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 60px;
+  padding: 0.75rem 1.25rem;
+  transition: all 0.2s;
+}
+
+.input-glass:focus {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: #a78bfa;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+/* 🎯 HOVER LINKS - elegant transition */
+a:not(.btn-soft) {
+  transition: color 0.2s ease;
+}
+
+a:not(.btn-soft):hover {
+  color: #8b5cf6;
+}
+
+/* =========================
+   🔧 RESPONSIVE ADJUSTMENTS
+========================= */
+@media (max-width: 768px) {
+  .card-glass {
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+  }
+  
+  .section-heading {
+    font-size: 2rem;
+  }
+  
+  .btn-soft {
+    padding: 0.5rem 1.25rem;
+  }
+}
+
+/* =========================
+   🌈 ADDITIONAL PURPLE/BLUE MAGIC
+========================= */
+/* Selection color - matches theme */
+::selection {
+  background: #c4b5fd;
+  color: #1e1b4b;
+}
+
+/* Focus rings for interactive elements */
+button:focus-visible, 
+a:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
+}
+
+/* Background accent blobs for extra dreaminess */
+.bg-blob-purple {
+  background: radial-gradient(circle at 25% 35%, rgba(139, 92, 246, 0.12), transparent 65%);
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.bg-blob-blue {
+  background: radial-gradient(circle at 75% 65%, rgba(96, 165, 250, 0.1), transparent 65%);
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ✨ CARD SHIMMER EFFECT ON HOVER */
+.hover-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.hover-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s ease;
+}
+
+.hover-shimmer:hover::after {
+  left: 100%;
+}
+
+/* 🌟 STATS NUMBER STYLING */
+.stat-number {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #8b5cf6, #60a5fa);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* 💫 TESTIMONIAL QUOTE STYLE */
+.testimonial-quote {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 4rem;
+  line-height: 1;
+  color: rgba(139, 92, 246, 0.2);
+}
+
+/* 🎯 BUTTON OUTLINE VARIANT */
+.btn-outline {
+  @apply px-7 py-2.5 rounded-full font-semibold transition-all duration-300 bg-transparent;
+  border: 1.5px solid #a78bfa;
+  color: #8b5cf6;
+}
+
+.btn-outline:hover {
+  background: rgba(139, 92, 246, 0.1);
+  transform: scale(1.02) translateY(-2px);
+  border-color: #8b5cf6;
+}
+
+/* =========================
+   🌙 DARK MODE SPECIFIC OVERRIDES
+========================= */
+@media (prefers-color-scheme: dark) {
+  .card-glass {
+    background: rgba(30, 27, 55, 0.6);
+    border-color: rgba(139, 92, 246, 0.3);
+  }
+  
+  .card-glass:hover {
+    background: rgba(30, 27, 55, 0.8);
+  }
+  
+  .input-glass {
+    background: rgba(30, 27, 55, 0.5);
+    color: #f1f5f9;
+  }
+  
+  .input-glass:focus {
+    background: rgba(30, 27, 55, 0.8);
+  }
+  
+  .badge-lavender {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(96, 165, 250, 0.2));
+    color: #c4b5fd;
+  }
+  
+  .section-heading {
+    color: #f1f5f9;
+  }
+  
+  .btn-outline {
+    border-color: #a78bfa;
+    color: #c4b5fd;
+  }
+  
+  ::selection {
+    background: #6d28d9;
+    color: #ffffff;
+  }
+}

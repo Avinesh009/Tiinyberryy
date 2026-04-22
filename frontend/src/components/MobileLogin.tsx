@@ -106,7 +106,7 @@ const MobileLogin = ({ isOpen, onClose, onLogin }: MobileLoginProps) => {
         if (orderCount > 0) {
           alert(`Welcome back! You have ${orderCount} order${orderCount > 1 ? 's' : ''} in your history.`);
         } else {
-          alert('Welcome! Start shopping with Tiiny Berry.');
+          alert('Welcome! Start shopping with Aazhi.');
         }
 
         // Redirect to orders page or refresh

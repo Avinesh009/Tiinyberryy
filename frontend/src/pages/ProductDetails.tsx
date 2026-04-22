@@ -60,7 +60,6 @@ const ProductDetails = () => {
           console.log('Product fetched:', data);
           setProduct(data);
           
-          // Set default size if available
           if (data.sizes && data.sizes.length > 0) {
             if (data.sizes[0] === 'One Size') {
               setSelectedSize('One Size');
@@ -69,7 +68,6 @@ const ProductDetails = () => {
             }
           }
           
-          // Set default color if available
           if (data.colors && data.colors.length > 0) {
             setSelectedColor(data.colors[0]);
             if (data.colors[0].images && data.colors[0].images.length > 0) {
@@ -79,7 +77,6 @@ const ProductDetails = () => {
             setSelectedImage(data.image);
           }
           
-          // Fetch related products
           const relatedResponse = await fetch(`${API_URL}/products/category/${data.category}`);
           if (relatedResponse.ok) {
             const allRelated = await relatedResponse.json();
@@ -103,7 +100,6 @@ const ProductDetails = () => {
     }
   }, [id, navigate]);
 
-  // Fetch wishlist
   useEffect(() => {
     const fetchWishlist = async () => {
       const sessionId = localStorage.getItem('tiinyberry_session_id');
@@ -166,7 +162,6 @@ const ProductDetails = () => {
   const handleAddToCart = async () => {
     if (!product) return;
     
-    // Check if size is required
     const hasSizes = product.sizes && product.sizes.length > 0 && product.sizes[0] !== 'One Size';
     
     if (hasSizes && !selectedSize) {
@@ -176,7 +171,6 @@ const ProductDetails = () => {
     
     setSizeError('');
     const colorName = selectedColor?.name || '';
-    // Also store the selected color's image URL in cart
     const colorImage = selectedColor?.images?.[0] || product.image;
     
     const success = await addToCart(product.productId, quantity, selectedSize, colorName, colorImage);
@@ -231,11 +225,11 @@ const ProductDetails = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gradient-to-br from-[#f5efff] via-[#e8f0fe] to-[#faf5ff]">
         <AnnouncementBar />
         <Navbar />
         <div className="flex items-center justify-center h-96">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="inline-block rounded-full h-8 w-8 border-2 border-purple-300 border-t-purple-600 animate-spin"></div>
         </div>
         <Footer />
       </div>
@@ -244,12 +238,17 @@ const ProductDetails = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gradient-to-br from-[#f5efff] via-[#e8f0fe] to-[#faf5ff]">
         <AnnouncementBar />
         <Navbar />
         <div className="text-center py-20">
-          <h2 className="text-2xl font-heading">Product not found</h2>
-          <button onClick={() => navigate('/')} className="mt-4 text-primary hover:underline">
+          <h2 className="text-2xl font-heading bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+            Product not found
+          </h2>
+          <button 
+            onClick={() => navigate('/')} 
+            className="mt-4 text-purple-500 hover:text-purple-600 hover:underline transition-all"
+          >
             Back to Home
           </button>
         </div>
@@ -261,57 +260,59 @@ const ProductDetails = () => {
   const hasSizes = product.sizes && product.sizes.length > 0 && product.sizes[0] !== 'One Size';
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-[#f5efff] via-[#e8f0fe] to-[#faf5ff]">
       <AnnouncementBar />
       <Navbar />
       <main className="pt-8 pb-16">
         <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-6 text-sm text-muted-foreground">
-            <button onClick={() => navigate('/')} className="hover:text-primary">Home</button>
+          {/* Breadcrumb */}
+          <div className="mb-6 text-sm text-gray-500">
+            <button onClick={() => navigate('/')} className="hover:text-purple-500 transition-colors">Home</button>
             <span className="mx-2">/</span>
-            <button onClick={() => navigate(`/category/collection/${product.category}`)} className="hover:text-primary">
+            <button onClick={() => navigate(`/category/collection/${product.category}`)} className="hover:text-purple-500 transition-colors">
               {product.category.charAt(0).toUpperCase() + product.category.slice(1)}
             </button>
             <span className="mx-2">/</span>
-            <span className="text-foreground">{product.name}</span>
+            <span className="text-[#1e1b4b]">{product.name}</span>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 lg:gap-12 mb-16">
             {/* Product Images with Gallery */}
             <div className="space-y-4">
               {/* Main Image */}
-              <div className="relative overflow-hidden rounded-2xl bg-muted" style={{ aspectRatio: "3/4" }}>
+              <div className="relative overflow-hidden rounded-2xl bg-purple-50/30 shadow-lg" style={{ aspectRatio: "3/4" }}>
                 <img 
                   src={selectedImage || defaultImage} 
                   alt={product.name} 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                 />
                 {product.badge && (
-                  <span className="absolute top-4 left-4 bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+                  <span className="absolute top-4 left-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
                     {product.badge}
                   </span>
                 )}
                 <button
                   onClick={toggleWish}
-                  className={`absolute top-4 right-4 w-10 h-10 flex items-center justify-center bg-white/90 rounded-full transition-all hover:scale-110 ${wishlisted.includes(product.productId) ? "text-red-500" : "text-muted-foreground"}`}
+                  className={`absolute top-4 right-4 w-10 h-10 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-full transition-all hover:scale-110 ${
+                    wishlisted.includes(product.productId) ? "text-red-500" : "text-gray-400 hover:text-red-500"
+                  }`}
                 >
                   <Heart size={18} fill={wishlisted.includes(product.productId) ? "currentColor" : "none"} />
                 </button>
                 
-                {/* Navigation Arrows for Multiple Images */}
                 {hasMultipleImages && (
                   <>
                     <button
                       onClick={prevImage}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-all"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-all shadow-md"
                     >
-                      <ChevronLeft size={20} />
+                      <ChevronLeft size={20} className="text-purple-600" />
                     </button>
                     <button
                       onClick={nextImage}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-all"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-all shadow-md"
                     >
-                      <ChevronRight size={20} />
+                      <ChevronRight size={20} className="text-purple-600" />
                     </button>
                   </>
                 )}
@@ -325,7 +326,7 @@ const ProductDetails = () => {
                       key={idx}
                       onClick={() => handleThumbnailClick(img, idx)}
                       className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                        selectedImage === img ? 'border-primary' : 'border-transparent hover:border-gray-300'
+                        selectedImage === img ? 'border-purple-500 shadow-md' : 'border-transparent hover:border-purple-300'
                       }`}
                     >
                       <img 
@@ -341,30 +342,32 @@ const ProductDetails = () => {
 
             {/* Product Info */}
             <div>
-              <h1 className="text-3xl md:text-4xl font-light text-foreground font-heading mb-3">
+              <h1 className="text-3xl md:text-4xl font-light font-heading mb-3 bg-gradient-to-r from-[#1e1b4b] to-[#5b21b6] bg-clip-text text-transparent">
                 {product.name}
               </h1>
               
               <div className="flex items-center gap-3 mb-6">
-                <span className="text-2xl font-bold text-primary">Rs. {product.price.toLocaleString()}</span>
+                <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+                  Rs. {product.price.toLocaleString()}
+                </span>
                 {product.originalPrice && (
-                  <span className="text-lg text-muted-foreground line-through">
+                  <span className="text-lg text-gray-400 line-through">
                     Rs. {product.originalPrice.toLocaleString()}
                   </span>
                 )}
               </div>
 
-              <p className="text-muted-foreground leading-relaxed mb-6">
+              <p className="text-gray-600 leading-relaxed mb-6">
                 {product.description || "Crafted with love from 100% organic cotton muslin, luxuriously soft and breathable for ultimate comfort."}
               </p>
 
-              {/* Color Selection with Horizontal Scroll */}
+              {/* Color Selection */}
               {hasColors && (
                 <div className="mb-6">
                   <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-sm font-semibold">Select Color</h3>
+                    <h3 className="text-sm font-semibold text-[#1e1b4b]">Select Color</h3>
                     {product.colors && product.colors.length > 6 && (
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-gray-500">
                         {product.colors.length} colors
                       </p>
                     )}
@@ -382,8 +385,8 @@ const ProductDetails = () => {
                             <div
                               className={`w-14 h-14 rounded-full border-2 transition-all duration-200 ${
                                 selectedColor?.name === color.name
-                                  ? 'border-primary scale-110 shadow-lg'
-                                  : 'border-gray-200 group-hover:border-primary group-hover:scale-105'
+                                  ? 'border-purple-500 scale-110 shadow-lg'
+                                  : 'border-gray-200 group-hover:border-purple-400 group-hover:scale-105'
                               }`}
                               style={{ 
                                 background: color.code.startsWith('linear') 
@@ -397,8 +400,8 @@ const ProductDetails = () => {
                             </div>
                             <span className={`text-xs transition-all ${
                               selectedColor?.name === color.name 
-                                ? 'text-primary font-medium' 
-                                : 'text-muted-foreground group-hover:text-primary'
+                                ? 'text-purple-600 font-medium' 
+                                : 'text-gray-500 group-hover:text-purple-500'
                             }`}>
                               {color.name}
                             </span>
@@ -414,8 +417,8 @@ const ProductDetails = () => {
                         className="w-5 h-5 rounded-full border border-gray-300" 
                         style={{ background: selectedColor.code }}
                       />
-                      <p className="text-sm text-muted-foreground">
-                        Selected: <span className="font-medium text-primary">{selectedColor.name}</span>
+                      <p className="text-sm text-gray-500">
+                        Selected: <span className="font-medium text-purple-600">{selectedColor.name}</span>
                       </p>
                     </div>
                   )}
@@ -426,7 +429,7 @@ const ProductDetails = () => {
               {hasSizes && (
                 <div className="mb-6">
                   <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-sm font-semibold">Select Size</h3>
+                    <h3 className="text-sm font-semibold text-[#1e1b4b]">Select Size</h3>
                     {sizeError && <p className="text-xs text-red-500">{sizeError}</p>}
                   </div>
                   <div className="flex flex-wrap gap-3">
@@ -437,10 +440,10 @@ const ProductDetails = () => {
                           setSelectedSize(size);
                           setSizeError('');
                         }}
-                        className={`px-5 py-2.5 border rounded-lg text-sm font-medium transition-all ${
+                        className={`px-5 py-2.5 border rounded-full text-sm font-medium transition-all ${
                           selectedSize === size
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border hover:border-primary"
+                            ? "border-purple-500 bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md"
+                            : "border-purple-200 hover:border-purple-400 text-[#1e1b4b] hover:bg-purple-50"
                         }`}
                       >
                         {size}
@@ -452,24 +455,24 @@ const ProductDetails = () => {
 
               {/* Quantity Selection */}
               <div className="mb-8">
-                <h3 className="text-sm font-semibold mb-3">Quantity</h3>
+                <h3 className="text-sm font-semibold text-[#1e1b4b] mb-3">Quantity</h3>
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center border border-border rounded-lg">
+                  <div className="flex items-center border border-purple-200 rounded-full bg-white/50">
                     <button
                       onClick={() => handleQuantityChange('decrease')}
-                      className="w-10 h-10 flex items-center justify-center hover:bg-accent transition-colors"
+                      className="w-10 h-10 flex items-center justify-center rounded-l-full hover:bg-purple-100 transition-colors text-purple-600"
                     >
                       <Minus size={16} />
                     </button>
-                    <span className="w-12 text-center font-medium">{quantity}</span>
+                    <span className="w-12 text-center font-medium text-[#1e1b4b]">{quantity}</span>
                     <button
                       onClick={() => handleQuantityChange('increase')}
-                      className="w-10 h-10 flex items-center justify-center hover:bg-accent transition-colors"
+                      className="w-10 h-10 flex items-center justify-center rounded-r-full hover:bg-purple-100 transition-colors text-purple-600"
                     >
                       <Plus size={16} />
                     </button>
                   </div>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm text-gray-500">
                     {quantity} item{quantity > 1 ? 's' : ''}
                   </span>
                 </div>
@@ -479,17 +482,17 @@ const ProductDetails = () => {
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={handleAddToCart}
-                  className={`flex-1 py-3 px-6 font-bold uppercase tracking-wider text-sm rounded-lg transition-all ${
+                  className={`flex-1 py-3 px-6 font-bold uppercase tracking-wider text-sm rounded-full transition-all duration-300 ${
                     added
-                      ? "bg-green-600 text-white"
-                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                      ? "bg-green-500 text-white shadow-md"
+                      : "bg-gradient-to-r from-purple-500 via-purple-400 to-blue-400 text-white hover:scale-105 hover:-translate-y-0.5 hover:shadow-purple-300/30"
                   }`}
                 >
                   {added ? "Added! ✓" : "Add to Cart"}
                 </button>
                 <button
                   onClick={handleBuyNow}
-                  className="flex-1 py-3 px-6 font-bold uppercase tracking-wider text-sm rounded-lg border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all"
+                  className="flex-1 py-3 px-6 font-bold uppercase tracking-wider text-sm rounded-full border-2 border-purple-400 text-purple-600 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-400 hover:text-white hover:border-transparent transition-all duration-300"
                 >
                   Buy It Now
                 </button>
@@ -498,29 +501,29 @@ const ProductDetails = () => {
           </div>
 
           {/* Product Details Section */}
-          <div className="border-t border-border pt-12 mb-12">
+          <div className="border-t border-purple-100 pt-12 mb-12">
             <div className="grid md:grid-cols-2 gap-12">
               <div>
-                <h2 className="text-xl font-heading font-semibold mb-4">Product Details</h2>
-                <div className="space-y-3 text-muted-foreground">
-                  <p><strong className="text-foreground">Material:</strong> {product.material || '100% Organic Cotton Muslin'}</p>
-                  <p><strong className="text-foreground">Care Instructions:</strong> {product.care || 'Machine wash cold, tumble dry low'}</p>
+                <h2 className="text-xl font-heading font-semibold mb-4 text-[#1e1b4b]">Product Details</h2>
+                <div className="space-y-3 text-gray-600">
+                  <p><strong className="text-[#1e1b4b]">Material:</strong> {product.material || '100% Organic Cotton Muslin'}</p>
+                  <p><strong className="text-[#1e1b4b]">Care Instructions:</strong> {product.care || 'Machine wash cold, tumble dry low'}</p>
                   {hasSizes && (
-                    <p><strong className="text-foreground">Available Sizes:</strong> {product.sizes?.join(', ')}</p>
+                    <p><strong className="text-[#1e1b4b]">Available Sizes:</strong> {product.sizes?.join(', ')}</p>
                   )}
                   {hasColors && (
-                    <p><strong className="text-foreground">Available Colors:</strong> {product.colors?.map(c => c.name).join(', ')}</p>
+                    <p><strong className="text-[#1e1b4b]">Available Colors:</strong> {product.colors?.map(c => c.name).join(', ')}</p>
                   )}
                 </div>
               </div>
               <div>
-                <h2 className="text-xl font-heading font-semibold mb-4">Why Choose Tiiny Berry?</h2>
-                <ul className="space-y-2 text-muted-foreground">
-                  <li>✓ Purest softness - 100% organic cotton, gentle on skin</li>
-                  <li>✓ Safety-first - label-free, saliva-tested for peace of mind</li>
-                  <li>✓ Naturally breathable - keeps your baby cool and comfy all day</li>
-                  <li>✓ Adorable designs - stylish and snuggly</li>
-                  <li>✓ Eco-friendly choice - good for babies and our planet</li>
+                <h2 className="text-xl font-heading font-semibold mb-4 text-[#1e1b4b]">Why Choose Aazhi?</h2>
+                <ul className="space-y-2 text-gray-600">
+                  <li className="flex items-center gap-2">✓ Purest softness - 100% organic cotton, gentle on skin</li>
+                  <li className="flex items-center gap-2">✓ Safety-first - label-free, saliva-tested for peace of mind</li>
+                  <li className="flex items-center gap-2">✓ Naturally breathable - keeps your baby cool and comfy all day</li>
+                  <li className="flex items-center gap-2">✓ Adorable designs - stylish and snuggly</li>
+                  <li className="flex items-center gap-2">✓ Eco-friendly choice - good for babies and our planet</li>
                 </ul>
               </div>
             </div>
@@ -529,15 +532,17 @@ const ProductDetails = () => {
           {/* You May Also Like */}
           {relatedProducts.length > 0 && (
             <div>
-              <h2 className="text-2xl font-heading font-light mb-6">You May Also Like</h2>
+              <h2 className="text-2xl font-heading font-light mb-6 bg-gradient-to-r from-[#1e1b4b] to-[#5b21b6] bg-clip-text text-transparent">
+                You May Also Like
+              </h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                 {relatedProducts.map((related) => (
                   <div
                     key={related.productId}
                     onClick={() => navigate(`/product/${related.productId}`)}
-                    className="group cursor-pointer"
+                    className="group cursor-pointer transition-all duration-300 hover:-translate-y-1"
                   >
-                    <div className="relative overflow-hidden rounded-xl bg-muted" style={{ aspectRatio: "3/4" }}>
+                    <div className="relative overflow-hidden rounded-xl bg-purple-50/30 shadow-md" style={{ aspectRatio: "3/4" }}>
                       <img
                         src={related.image || defaultImage}
                         alt={related.name}
@@ -545,9 +550,13 @@ const ProductDetails = () => {
                       />
                     </div>
                     <div className="mt-3">
-                      <h3 className="text-sm font-medium text-foreground">{related.name}</h3>
+                      <h3 className="text-sm font-medium text-[#1e1b4b] group-hover:text-purple-600 transition-colors">
+                        {related.name}
+                      </h3>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm font-bold text-primary">Rs. {related.price.toLocaleString()}</span>
+                        <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+                          Rs. {related.price.toLocaleString()}
+                        </span>
                       </div>
                     </div>
                   </div>

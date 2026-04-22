@@ -33,7 +33,7 @@ const generateOTPEmailHTML = (otp, userName) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Email OTP - Tiiny Berry</title>
+      <title>Email OTP - Aazhi</title>
       <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f5; }
         .container { max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -49,21 +49,21 @@ const generateOTPEmailHTML = (otp, userName) => {
     <body>
       <div class="container">
         <div class="header">
-          <h1>✨ Tiiny Berry ✨</h1>
+          <h1>✨ Aazhi ✨</h1>
           <p>Email Verification</p>
         </div>
         <div class="content">
           <h2>Hello ${escapeHtml(userName) || 'Valued Customer'}!</h2>
-          <p>You requested to login to your Tiiny Berry account. Please use the following OTP to complete your login:</p>
+          <p>You requested to login to your Aazhi account. Please use the following OTP to complete your login:</p>
           <div class="otp-code">
             <span>${otp}</span>
           </div>
           <p>This OTP is valid for <strong>10 minutes</strong>. Do not share this OTP with anyone.</p>
           <p>If you didn't request this, please ignore this email.</p>
-          <p style="margin-top: 20px;">Thank you,<br><strong>The Tiiny Berry Team</strong> ❤️</p>
+          <p style="margin-top: 20px;">Thank you,<br><strong>The aazhi Team</strong> ❤️</p>
         </div>
         <div class="footer">
-          <p>&copy; ${new Date().getFullYear()} Tiiny Berry. All rights reserved.</p>
+          <p>&copy; ${new Date().getFullYear()} Aazhi. All rights reserved.</p>
           <p>Made with ❤️ for little ones</p>
         </div>
       </div>
@@ -78,9 +78,9 @@ export const sendOTPEmail = async (email, otp, userName) => {
     const html = generateOTPEmailHTML(otp, userName);
     
     const mailOptions = {
-      from: `"Tiiny Berry" <${process.env.EMAIL_USER}>`,
+      from: `"Aazhi" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: '🔐 Your Tiiny Berry Login OTP',
+      subject: '🔐 Your Aazhi Login OTP',
       html: html
     };
     

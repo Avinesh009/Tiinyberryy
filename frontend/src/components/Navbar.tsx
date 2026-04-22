@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, User, ShoppingBag, Menu, X, ChevronDown, LogOut, Mail, Package } from 'lucide-react';
+import { Search, User, ShoppingBag, Menu, X, ChevronDown, LogOut, Package } from 'lucide-react';
 import { useCart } from '@/context/useCart';
 import EmailOTPLogin from './EmailOTPLogin';
 import SearchModal from './SearchModal';
@@ -10,7 +10,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
-   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [openMobileMenu, setOpenMobileMenu] = useState<string | null>(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -18,14 +18,11 @@ const Navbar = () => {
   const { cartCount } = useCart();
   const navigate = useNavigate();
 
-  // Check if user is logged in on mount
   useEffect(() => {
     const savedUser = localStorage.getItem('tiinyberry_user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
-    
-    // Fetch subcategories for navbar
     fetchSubcategories();
   }, []);
 
@@ -63,61 +60,187 @@ const Navbar = () => {
     setMobileOpen(false);
   };
 
-  // Get subcategories by category
   const getSubcategoriesByCategory = (category: string) => {
     return subcategories.filter(sub => sub.category === category);
   };
 
-  // Get orders count
   const ordersCount = () => {
     const orders = localStorage.getItem('tiinyberry_orders');
-    if (orders) {
-      return JSON.parse(orders).length;
-    }
+    if (orders) return JSON.parse(orders).length;
     return 0;
   };
 
   const navItems = [
-    {
-      label: "New Born",
-      category: "newborn",
-      path: "/category/collection/newborn",
-    },
-    {
-      label: "Bathing",
-      category: "bathing",
-      path: "/category/collection/bathing",
-    },
-    {
-      label: "Clothing",
-      category: "clothing",
-      path: "/category/collection/clothing",
-    },
-    {
-      label: "Thottil",
-      category: "thottil",
-      path: "/category/collection/thottil",
-    },
-    {
-      label: "Bedding",
-      category: "bedding",
-      path: "/category/collection/bedding",
-    },
-    {
-      label: "Nursery & Accessories",
-      category: "accessories",
-      path: "/category/collection/accessories",
-    },
+    { label: "New Born",             category: "newborn",    path: "/category/collection/newborn" },
+    { label: "Bathing",              category: "bathing",    path: "/category/collection/bathing" },
+    { label: "Clothing",             category: "clothing",   path: "/category/collection/clothing" },
+    { label: "Thottil",              category: "thottil",    path: "/category/collection/thottil" },
+    { label: "Bedding",              category: "bedding",    path: "/category/collection/bedding" },
+    { label: "Nursery & Accessories",category: "accessories",path: "/category/collection/accessories" },
+    { label: "Combo",                category: "",           path: "/shop/combos" },
   ];
 
   return (
     <>
-      <nav className="sticky top-0 z-50 bg-white/95 border-b border-border backdrop-blur-sm">
+      <style>{`
+        .navbar-root {
+          background: linear-gradient(135deg, #e8f0fe 0%, #f3e8ff 50%, #e0f2fe 100%);
+          border-bottom: 1px solid rgba(147, 117, 205, 0.2);
+          backdrop-filter: blur(12px);
+        }
+
+        .nav-logo {
+          background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .nav-link {
+          color: #5b4f82;
+          font-size: 0.72rem;
+          font-weight: 600;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          transition: color 0.2s;
+          position: relative;
+        }
+        .nav-link::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 0;
+          height: 2px;
+          background: linear-gradient(90deg, #6366f1, #a855f7);
+          border-radius: 2px;
+          transition: width 0.25s ease;
+        }
+        .nav-link:hover::after { width: 70%; }
+        .nav-link:hover { color: #7c3aed; }
+
+        .icon-btn {
+          color: #7c6fa0;
+          background: transparent;
+          border-radius: 9999px;
+          padding: 0.5rem;
+          transition: background 0.2s, color 0.2s;
+        }
+        .icon-btn:hover {
+          background: rgba(139, 92, 246, 0.12);
+          color: #6d28d9;
+        }
+
+        .cart-badge {
+          background: linear-gradient(135deg, #6366f1, #a855f7);
+          color: white;
+        }
+
+        .dropdown-panel {
+          background: linear-gradient(160deg, #f0ebff 0%, #e8f3ff 100%);
+          border: 1px solid rgba(139, 92, 246, 0.18);
+          box-shadow: 0 12px 40px rgba(107, 70, 193, 0.15);
+        }
+        .dropdown-header {
+          background: rgba(167, 139, 250, 0.15);
+          border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+          color: #7c3aed;
+          font-size: 0.65rem;
+          font-weight: 700;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          padding: 0.6rem 1rem;
+        }
+        .dropdown-item {
+          display: block;
+          width: 100%;
+          text-align: left;
+          padding: 0.6rem 1rem;
+          font-size: 0.85rem;
+          color: #5b4f82;
+          border-bottom: 1px solid rgba(139, 92, 246, 0.08);
+          transition: background 0.15s, color 0.15s, padding-left 0.15s;
+        }
+        .dropdown-item:hover {
+          background: rgba(139, 92, 246, 0.1);
+          color: #6d28d9;
+          padding-left: 1.25rem;
+        }
+        .dropdown-item:last-child { border-bottom: none; }
+
+        /* User dropdown */
+        .user-dropdown-item {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          width: 100%;
+          text-align: left;
+          padding: 0.625rem 1rem;
+          font-size: 0.875rem;
+          color: #5b4f82;
+          transition: background 0.15s, color 0.15s;
+        }
+        .user-dropdown-item:hover {
+          background: rgba(139, 92, 246, 0.1);
+          color: #6d28d9;
+        }
+        .user-dropdown-item.danger { color: #dc2626; }
+        .user-dropdown-item.danger:hover { background: #fef2f2; }
+
+        /* Mobile sidebar */
+        .mobile-sidebar {
+          background: linear-gradient(180deg, #f0ebff 0%, #e8f3ff 100%);
+        }
+        .mobile-sidebar-header {
+          background: linear-gradient(135deg, #ede9fe 0%, #dbeafe 100%);
+          border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+        }
+        .mobile-nav-item {
+          border-bottom: 1px solid rgba(139, 92, 246, 0.12);
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 1rem 1.25rem;
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: #4c3d7a;
+          transition: background 0.15s;
+        }
+        .mobile-nav-item:hover { background: rgba(139, 92, 246, 0.08); }
+        .mobile-sub-panel {
+          background: rgba(167, 139, 250, 0.08);
+          padding: 0.25rem 0.5rem 0.75rem;
+        }
+        .mobile-sub-item {
+          display: block;
+          width: 100%;
+          text-align: left;
+          padding: 0.625rem 1.25rem;
+          font-size: 0.85rem;
+          color: #6b5ea8;
+          border-bottom: 1px solid rgba(139, 92, 246, 0.08);
+          border-radius: 0.375rem;
+          transition: background 0.15s, color 0.15s;
+        }
+        .mobile-sub-item:hover { background: rgba(139, 92, 246, 0.1); color: #5b21b6; }
+        .mobile-sub-item.primary { color: #7c3aed; font-weight: 600; }
+        .mobile-sub-item:last-child { border-bottom: none; }
+
+        .overlay-bg {
+          background: rgba(76, 61, 122, 0.45);
+          backdrop-filter: blur(4px);
+        }
+      `}</style>
+
+      <nav className="navbar-root sticky top-0 z-50">
         <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-[72px]">
+
             {/* Mobile menu button */}
             <button
-              className="md:hidden p-2 text-foreground hover:text-primary transition-colors"
+              className="md:hidden icon-btn"
               onClick={() => setMobileOpen(true)}
               aria-label="Open menu"
             >
@@ -127,13 +250,11 @@ const Navbar = () => {
             {/* Logo */}
             <a
               href="/"
-              onClick={(e) => {
-                e.preventDefault();
-                navigate('/');
-              }}
-              className="font-heading text-2xl md:text-3xl font-semibold tracking-tight text-foreground flex-shrink-0 cursor-pointer"
+              onClick={(e) => { e.preventDefault(); navigate('/'); }}
+              className="nav-logo font-heading text-2xl md:text-3xl font-semibold tracking-tight flex-shrink-0 cursor-pointer"
+              style={{ fontFamily: "'Cormorant Garamond', serif" }}
             >
-              Tiiny <span className="text-primary">Berry</span>
+              Aazhi
             </a>
 
             {/* Desktop Navigation */}
@@ -144,23 +265,23 @@ const Navbar = () => {
                   <div key={item.label} className="group relative">
                     <button
                       onClick={() => handleNavigation(item.path)}
-                      className="flex items-center gap-1 px-3 lg:px-4 h-[72px] text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
+                      className="nav-link flex items-center gap-1 px-3 lg:px-4 h-[72px] whitespace-nowrap"
                     >
                       {item.label}
-                      {subItems.length > 0 && <ChevronDown size={12} className="transition-transform group-hover:rotate-180" />}
+                      {subItems.length > 0 && (
+                        <ChevronDown size={12} className="transition-transform group-hover:rotate-180 text-violet-400" />
+                      )}
                     </button>
                     {subItems.length > 0 && (
                       <div className="absolute left-0 top-full w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                        <div className="bg-white shadow-xl rounded-lg border border-border mt-1 overflow-hidden">
-                          <div className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-border bg-secondary/30">
-                            {item.label}
-                          </div>
+                        <div className="dropdown-panel rounded-xl mt-1 overflow-hidden">
+                          <div className="dropdown-header">{item.label}</div>
                           <div className="max-h-96 overflow-y-auto">
                             {subItems.map((sub) => (
                               <button
                                 key={sub._id}
                                 onClick={() => handleNavigation(`/category/subcategory/${sub.name}`)}
-                                className="w-full text-left block px-4 py-2.5 text-sm text-muted-foreground hover:text-primary hover:bg-accent/30 transition-all hover:pl-5 border-b border-border/40 last:border-0"
+                                className="dropdown-item"
                               >
                                 {sub.name}
                               </button>
@@ -174,70 +295,52 @@ const Navbar = () => {
               })}
             </div>
 
-            {/* Right side icons */}
+            {/* Right icons */}
             <div className="flex items-center gap-0.5">
               {/* Search */}
-              <button
-            onClick={() => setIsSearchOpen(true)}
-            className="p-2.5 text-muted-foreground hover:text-primary hover:bg-accent/40 rounded-full transition-all"
-            aria-label="Search"
-          >
-            <Search size={19} />
-          </button>
+              <button onClick={() => setIsSearchOpen(true)} className="icon-btn" aria-label="Search">
+                <Search size={19} />
+              </button>
 
-              {/* Email Login Button */}
+              {/* User */}
               {user ? (
                 <div className="relative group">
-                  <button className="p-2.5 text-muted-foreground hover:text-primary hover:bg-accent/40 rounded-full transition-all flex items-center gap-1">
+                  <button className="icon-btn flex items-center gap-1">
                     <User size={19} />
-                    <span className="text-sm hidden md:inline">{user.name?.split(' ')[0] || 'Account'}</span>
-                    <ChevronDown size={14} />
+                    <span className="text-sm hidden md:inline text-violet-700 font-medium">
+                      {user.name?.split(' ')[0] || 'Account'}
+                    </span>
+                    <ChevronDown size={14} className="text-violet-400" />
                   </button>
-                  <div className="absolute right-0 top-full w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                    <div className="bg-white shadow-xl rounded-lg border border-border mt-1 overflow-hidden">
-                      <button
-                        onClick={() => handleNavigation('/profile')}
-                        className="w-full text-left px-4 py-2.5 text-sm hover:bg-accent transition-colors flex items-center gap-2"
-                      >
-                        <User size={14} />
-                        My Profile
+                  <div className="absolute right-0 top-full w-52 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div className="dropdown-panel rounded-xl mt-1 overflow-hidden">
+                      <button onClick={() => handleNavigation('/profile')} className="user-dropdown-item">
+                        <User size={14} /> My Profile
                       </button>
-                      <button
-                        onClick={() => handleNavigation('/orders')}
-                        className="w-full text-left px-4 py-2.5 text-sm hover:bg-accent transition-colors flex items-center gap-2"
-                      >
-                        <Package size={14} />
-                        My Orders ({ordersCount()})
+                      <button onClick={() => handleNavigation('/orders')} className="user-dropdown-item">
+                        <Package size={14} /> My Orders ({ordersCount()})
                       </button>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
-                      >
-                        <LogOut size={14} />
-                        Logout
+                      <button onClick={handleLogout} className="user-dropdown-item danger">
+                        <LogOut size={14} /> Logout
                       </button>
                     </div>
                   </div>
                 </div>
               ) : (
-                <button
-                  onClick={() => setIsLoginOpen(true)}
-                  className="p-2.5 text-muted-foreground hover:text-primary hover:bg-accent/40 rounded-full transition-all"
-                  aria-label="Email Login"
-                >
+                <button onClick={() => setIsLoginOpen(true)} className="icon-btn" aria-label="Login">
                   <User size={19} />
                 </button>
               )}
 
-              {/* Cart Button */}
+              {/* Cart */}
               <button
                 onClick={() => handleNavigation('/cart')}
-                className="p-2.5 text-muted-foreground hover:text-primary hover:bg-accent/40 rounded-full transition-all relative"
+                className="icon-btn relative"
                 aria-label="Cart"
               >
                 <ShoppingBag size={19} />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-primary text-primary-foreground text-[0.55rem] font-bold rounded-full flex items-center justify-center px-1">
+                  <span className="cart-badge absolute -top-1 -right-1 min-w-[18px] h-[18px] text-[0.55rem] font-bold rounded-full flex items-center justify-center px-1">
                     {cartCount > 99 ? '99+' : cartCount}
                   </span>
                 )}
@@ -247,32 +350,33 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Mobile Sidebar Menu */}
+      {/* Mobile Sidebar */}
       {mobileOpen && (
         <div className="fixed inset-0 z-[200] flex">
-          <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-            onClick={() => setMobileOpen(false)}
-          />
-          <aside className="relative z-10 w-80 bg-background h-full overflow-y-auto shadow-2xl flex flex-col animate-slide-in-right">
-            <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-background">
-              <span className="font-heading text-xl font-semibold text-foreground">
-                Tiiny Berry
+          <div className="overlay-bg fixed inset-0 transition-opacity" onClick={() => setMobileOpen(false)} />
+          <aside className="mobile-sidebar relative z-10 w-80 h-full overflow-y-auto shadow-2xl flex flex-col animate-slide-in-right">
+            <div className="mobile-sidebar-header flex items-center justify-between p-5 sticky top-0">
+              <span
+                className="nav-logo text-xl font-semibold"
+                style={{ fontFamily: "'Cormorant Garamond', serif" }}
+              >
+                Aazhi
               </span>
               <button
                 onClick={() => setMobileOpen(false)}
-                className="p-2 hover:bg-accent rounded-full transition-colors"
+                className="icon-btn"
                 aria-label="Close menu"
               >
                 <X size={20} />
               </button>
             </div>
+
             <div className="flex-1 pb-20">
               {navItems.map((item) => {
                 const subItems = getSubcategoriesByCategory(item.category);
                 const isOpen = openMobileMenu === item.label;
                 return (
-                  <div key={item.label} className="border-b border-border/60">
+                  <div key={item.label}>
                     <button
                       onClick={() => {
                         if (subItems.length > 0) {
@@ -281,22 +385,21 @@ const Navbar = () => {
                           handleNavigation(item.path);
                         }
                       }}
-                      className="w-full flex items-center justify-between px-5 py-4 text-sm font-semibold text-foreground hover:bg-accent/30 transition-colors"
+                      className="mobile-nav-item"
                     >
                       {item.label}
                       {subItems.length > 0 && (
                         <ChevronDown
                           size={14}
-                          className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                          className={`text-violet-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                         />
                       )}
                     </button>
                     {isOpen && subItems.length > 0 && (
-                      <div className="bg-secondary/30 px-2 pb-3">
-                        {/* Show "All {item.label}" option */}
+                      <div className="mobile-sub-panel">
                         <button
                           onClick={() => handleNavigation(item.path)}
-                          className="w-full text-left block px-5 py-2.5 text-sm font-medium text-primary hover:bg-accent/40 rounded-md transition-all border-b border-border/30"
+                          className="mobile-sub-item primary"
                         >
                           All {item.label}
                         </button>
@@ -304,7 +407,7 @@ const Navbar = () => {
                           <button
                             key={sub._id}
                             onClick={() => handleNavigation(`/category/subcategory/${sub.name}`)}
-                            className="w-full text-left block px-5 py-2.5 text-sm text-muted-foreground hover:text-primary hover:bg-accent/40 rounded-md transition-all border-b border-border/30 last:border-0"
+                            className="mobile-sub-item"
                           >
                             {sub.name}
                           </button>
@@ -319,13 +422,13 @@ const Navbar = () => {
         </div>
       )}
 
-      {/* Email OTP Login Modal */}
+      {/* Modals */}
       <EmailOTPLogin
         isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
         onLogin={handleLogin}
       />
-        <SearchModal
+      <SearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
       />

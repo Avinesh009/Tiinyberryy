@@ -1,17 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 
 interface RazorpayCheckoutProps {
   amount: number;
   onCreateOrder: () => Promise<string>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
   onSuccess: (response: any, orderId: string) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
   onFailure: (error: any) => void;
 }
 
 declare global {
   interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Razorpay: any;
   }
 }
@@ -40,7 +40,6 @@ const RazorpayCheckout = ({ amount, onCreateOrder, onSuccess, onFailure }: Razor
     setLoading(true);
     
     try {
-      // Load Razorpay script
       const isScriptLoaded = await loadRazorpayScript();
       if (!isScriptLoaded) {
         alert('Failed to load payment gateway. Please refresh and try again.');
@@ -48,11 +47,9 @@ const RazorpayCheckout = ({ amount, onCreateOrder, onSuccess, onFailure }: Razor
         return;
       }
       
-      // Create pending order first
       const orderId = await onCreateOrder();
       console.log('Pending order created:', orderId);
       
-      // Create Razorpay order
       const orderResponse = await fetch(`${API_URL}/payment/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -68,10 +65,9 @@ const RazorpayCheckout = ({ amount, onCreateOrder, onSuccess, onFailure }: Razor
         throw new Error(orderData.error || 'Failed to create payment order');
       }
       
-      // Get user info for prefill
       const user = JSON.parse(localStorage.getItem('tiinyberry_user') || '{}');
       
-      // Razorpay options
+      // Updated theme color to match purple/blue theme
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: orderData.amount,
@@ -80,7 +76,6 @@ const RazorpayCheckout = ({ amount, onCreateOrder, onSuccess, onFailure }: Razor
         description: 'Baby & Toddler Clothing',
         image: '/logo.png',
         order_id: orderData.order_id,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         handler: async (response: any) => {
           console.log('Payment handler response:', response);
           onSuccess(response, orderId);
@@ -91,7 +86,7 @@ const RazorpayCheckout = ({ amount, onCreateOrder, onSuccess, onFailure }: Razor
           contact: user.mobileNumber || ''
         },
         theme: {
-          color: '#2c3e50'
+          color: '#8b5cf6'  // Changed to light purple to match theme
         },
         modal: {
           ondismiss: () => {
@@ -116,9 +111,19 @@ const RazorpayCheckout = ({ amount, onCreateOrder, onSuccess, onFailure }: Razor
     <button
       onClick={handlePayment}
       disabled={loading}
-      className="w-full py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
+      className="w-full py-3 rounded-full font-semibold text-white shadow-md transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 hover:shadow-purple-300/30 disabled:opacity-50 disabled:hover:scale-100 bg-gradient-to-r from-purple-500 via-purple-400 to-blue-400"
     >
-      {loading ? 'Processing...' : `Pay ₹${amount.toLocaleString()}`}
+      {loading ? (
+        <span className="flex items-center justify-center gap-2">
+          <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Processing...
+        </span>
+      ) : (
+        `Pay ₹${amount.toLocaleString()}`
+      )}
     </button>
   );
 };

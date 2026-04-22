@@ -5,10 +5,10 @@ import FeatureStrip from "@/components/FeatureStrip";
 import ShopByAge from "@/components/ShopByAge";
 import ShopByCollections from "@/components/ShopByCollections";
 import Bestsellers from "@/components/Bestsellers";
+import ComboOffers from "@/components/ComboOffers";
 import ThottilHighlight from "@/components/ThottilHighlight";
 import OurStory from "@/components/OurStory";
 import Testimonials from "@/components/Testimonials";
-import InstagramStrip from "@/components/InstagramStrip";
 import Newsletter from "@/components/Newsletter";
 import Footer from "@/components/Footer";
 import BackToTop from "@/components/BackToTop";
@@ -26,10 +26,11 @@ const Index = () => {
         <FeatureStrip />
         <ShopByAge />
         <ShopByCollections />
+        <Bestsellers />
+        <ComboOffers />
         <ThottilHighlight />
         <OurStory />
         <Testimonials />
-        <InstagramStrip />
         <Newsletter />
       </main>
       <Footer />
