@@ -36,7 +36,7 @@ app.use(cors({
     'http://localhost:8080', 
     'http://127.0.0.1:8080', 
     'http://localhost:5173',
-    'https://tiinyberryy.vercel.app'  // ← ADD YOUR VERCEL URL
+    'https://aazhi1.vercel.app/'  // ← ADD YOUR VERCEL URL
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
