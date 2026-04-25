@@ -44,7 +44,7 @@ app.use(cors({
     'http://127.0.0.1:8080', 
     'http://localhost:5173',
     'https://aazhiweb.vercel.app',
-    'https://aazhi1.vercel.app',
+    'https://theaazhi.com',
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
