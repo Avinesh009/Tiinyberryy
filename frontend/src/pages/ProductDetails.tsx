@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BackToTop from "@/components/BackToTop";
 import AnnouncementBar from "@/components/AnnouncementBar";
+import { toast } from "sonner";
 
 interface Color {
   name: string;
@@ -29,6 +30,8 @@ interface Product {
   sizes?: string[];
   material?: string;
   care?: string;
+  inStock?: boolean;
+  stockQuantity?: number;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -135,6 +138,7 @@ const ProductDetails = () => {
           headers: { 'x-session-id': sessionId }
         });
         setWishlisted(wishlisted.filter(x => x !== product.productId));
+        toast.success('Removed from wishlist');
       } else {
         await fetch(`${API_URL}/wishlist/add`, {
           method: 'POST',
@@ -145,9 +149,11 @@ const ProductDetails = () => {
           body: JSON.stringify({ productId: product.productId })
         });
         setWishlisted([...wishlisted, product.productId]);
+        toast.success('Added to wishlist');
       }
     } catch (error) {
       console.error('Failed to toggle wishlist:', error);
+      toast.error('Something went wrong');
     }
   };
 
@@ -159,8 +165,34 @@ const ProductDetails = () => {
     }
   };
 
+  // Get stock status display
+  const getStockStatus = () => {
+    if (!product?.inStock || (product.stockQuantity !== undefined && product.stockQuantity <= 0)) {
+      return { text: "Out of Stock", color: "text-red-600", bg: "bg-red-100", badge: "bg-red-100 text-red-800" };
+    }
+    if (product.stockQuantity !== undefined && product.stockQuantity <= 10) {
+      return { text: `⚠️ Only ${product.stockQuantity} left in stock`, color: "text-orange-600", bg: "bg-orange-100", badge: "bg-orange-100 text-orange-800 animate-pulse" };
+    }
+    if (product.stockQuantity !== undefined && product.stockQuantity <= 20) {
+      return { text: `📦 Only ${product.stockQuantity} left`, color: "text-yellow-600", bg: "bg-yellow-100", badge: "bg-yellow-100 text-yellow-800" };
+    }
+    return { text: "✓ In Stock", color: "text-green-600", bg: "bg-green-100", badge: "bg-green-100 text-green-800" };
+  };
+
   const handleAddToCart = async () => {
     if (!product) return;
+    
+    // Check if product is out of stock
+    if (!product.inStock || (product.stockQuantity !== undefined && product.stockQuantity <= 0)) {
+      toast.error('This product is out of stock!');
+      return;
+    }
+    
+    // Check if quantity exceeds available stock
+    if (product.stockQuantity !== undefined && quantity > product.stockQuantity) {
+      toast.error(`Only ${product.stockQuantity} items available in stock!`);
+      return;
+    }
     
     const hasSizes = product.sizes && product.sizes.length > 0 && product.sizes[0] !== 'One Size';
     
@@ -177,12 +209,23 @@ const ProductDetails = () => {
     
     if (success) {
       setAdded(true);
+      toast.success(`Added ${quantity} item(s) to cart!`);
       setTimeout(() => setAdded(false), 2000);
+    } else {
+      toast.error('Failed to add to cart');
     }
   };
 
   const handleBuyNow = async () => {
-    const hasSizes = product?.sizes && product.sizes.length > 0 && product.sizes[0] !== 'One Size';
+    if (!product) return;
+    
+    // Check if product is out of stock
+    if (!product.inStock || (product.stockQuantity !== undefined && product.stockQuantity <= 0)) {
+      toast.error('This product is out of stock!');
+      return;
+    }
+    
+    const hasSizes = product.sizes && product.sizes.length > 0 && product.sizes[0] !== 'One Size';
     if (hasSizes && !selectedSize) {
       setSizeError('Please select a size');
       return;
@@ -192,7 +235,14 @@ const ProductDetails = () => {
   };
 
   const handleQuantityChange = (type: 'increase' | 'decrease') => {
+    if (!product) return;
+    
     if (type === 'increase') {
+      // Don't exceed available stock
+      if (product.stockQuantity !== undefined && quantity >= product.stockQuantity) {
+        toast.error(`Only ${product.stockQuantity} items available`);
+        return;
+      }
       setQuantity(prev => prev + 1);
     } else if (type === 'decrease' && quantity > 1) {
       setQuantity(prev => prev - 1);
@@ -222,6 +272,8 @@ const ProductDetails = () => {
   const currentImages = selectedColor?.images || product?.images || [product?.image || defaultImage];
   const hasMultipleImages = currentImages.length > 1;
   const hasColors = product?.colors && product.colors.length > 0;
+  const stockStatus = getStockStatus();
+  const isOutOfStock = !product?.inStock || (product.stockQuantity !== undefined && product.stockQuantity <= 0);
 
   if (loading) {
     return (
@@ -286,21 +338,36 @@ const ProductDetails = () => {
                   alt={product.name} 
                   className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                 />
-                {product.badge && (
+                
+                {/* Badge - only show if in stock */}
+                {product.badge && !isOutOfStock && (
                   <span className="absolute top-4 left-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
                     {product.badge}
                   </span>
                 )}
-                <button
-                  onClick={toggleWish}
-                  className={`absolute top-4 right-4 w-10 h-10 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-full transition-all hover:scale-110 ${
-                    wishlisted.includes(product.productId) ? "text-red-500" : "text-gray-400 hover:text-red-500"
-                  }`}
-                >
-                  <Heart size={18} fill={wishlisted.includes(product.productId) ? "currentColor" : "none"} />
-                </button>
                 
-                {hasMultipleImages && (
+                {/* OUT OF STOCK OVERLAY */}
+                {isOutOfStock && (
+                  <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                    <span className="text-white font-bold text-lg uppercase tracking-wider px-6 py-3 bg-red-600 rounded-full rotate-12 shadow-lg">
+                      Out of Stock
+                    </span>
+                  </div>
+                )}
+                
+                {/* Wishlist Button - hide for out of stock */}
+                {!isOutOfStock && (
+                  <button
+                    onClick={toggleWish}
+                    className={`absolute top-4 right-4 w-10 h-10 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-full transition-all hover:scale-110 ${
+                      wishlisted.includes(product.productId) ? "text-red-500" : "text-gray-400 hover:text-red-500"
+                    }`}
+                  >
+                    <Heart size={18} fill={wishlisted.includes(product.productId) ? "currentColor" : "none"} />
+                  </button>
+                )}
+                
+                {hasMultipleImages && !isOutOfStock && (
                   <>
                     <button
                       onClick={prevImage}
@@ -318,8 +385,8 @@ const ProductDetails = () => {
                 )}
               </div>
 
-              {/* Thumbnail Images */}
-              {hasMultipleImages && (
+              {/* Thumbnail Images - hide for out of stock */}
+              {hasMultipleImages && !isOutOfStock && (
                 <div className="flex gap-3 overflow-x-auto pb-2">
                   {currentImages.map((img, idx) => (
                     <button
@@ -346,8 +413,15 @@ const ProductDetails = () => {
                 {product.name}
               </h1>
               
+              {/* Stock Status Badge - NEW */}
+              <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${stockStatus.badge} mb-4`}>
+                <span className={`text-sm font-medium ${stockStatus.color}`}>
+                  {stockStatus.text}
+                </span>
+              </div>
+              
               <div className="flex items-center gap-3 mb-6">
-                <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+                <span className={`text-2xl font-bold ${isOutOfStock ? 'text-gray-400' : 'bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent'}`}>
                   Rs. {product.price.toLocaleString()}
                 </span>
                 {product.originalPrice && (
@@ -361,8 +435,8 @@ const ProductDetails = () => {
                 {product.description || "Crafted with love from 100% organic cotton muslin, luxuriously soft and breathable for ultimate comfort."}
               </p>
 
-              {/* Color Selection */}
-              {hasColors && (
+              {/* Color Selection - hide for out of stock */}
+              {hasColors && !isOutOfStock && (
                 <div className="mb-6">
                   <div className="flex justify-between items-center mb-3">
                     <h3 className="text-sm font-semibold text-[#1e1b4b]">Select Color</h3>
@@ -425,8 +499,8 @@ const ProductDetails = () => {
                 </div>
               )}
 
-              {/* Size Selection */}
-              {hasSizes && (
+              {/* Size Selection - hide for out of stock */}
+              {hasSizes && !isOutOfStock && (
                 <div className="mb-6">
                   <div className="flex justify-between items-center mb-3">
                     <h3 className="text-sm font-semibold text-[#1e1b4b]">Select Size</h3>
@@ -453,49 +527,67 @@ const ProductDetails = () => {
                 </div>
               )}
 
-              {/* Quantity Selection */}
-              <div className="mb-8">
-                <h3 className="text-sm font-semibold text-[#1e1b4b] mb-3">Quantity</h3>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center border border-purple-200 rounded-full bg-white/50">
-                    <button
-                      onClick={() => handleQuantityChange('decrease')}
-                      className="w-10 h-10 flex items-center justify-center rounded-l-full hover:bg-purple-100 transition-colors text-purple-600"
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <span className="w-12 text-center font-medium text-[#1e1b4b]">{quantity}</span>
-                    <button
-                      onClick={() => handleQuantityChange('increase')}
-                      className="w-10 h-10 flex items-center justify-center rounded-r-full hover:bg-purple-100 transition-colors text-purple-600"
-                    >
-                      <Plus size={16} />
-                    </button>
+              {/* Quantity Selection - hide for out of stock */}
+              {!isOutOfStock && (
+                <div className="mb-8">
+                  <h3 className="text-sm font-semibold text-[#1e1b4b] mb-3">Quantity</h3>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center border border-purple-200 rounded-full bg-white/50">
+                      <button
+                        onClick={() => handleQuantityChange('decrease')}
+                        className="w-10 h-10 flex items-center justify-center rounded-l-full hover:bg-purple-100 transition-colors text-purple-600"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="w-12 text-center font-medium text-[#1e1b4b]">{quantity}</span>
+                      <button
+                        onClick={() => handleQuantityChange('increase')}
+                        className="w-10 h-10 flex items-center justify-center rounded-r-full hover:bg-purple-100 transition-colors text-purple-600"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      {quantity} item{quantity > 1 ? 's' : ''}
+                    </span>
+                    {product.stockQuantity && product.stockQuantity <= 10 && (
+                      <span className="text-xs text-orange-600 animate-pulse">
+                        Only {product.stockQuantity} left!
+                      </span>
+                    )}
                   </div>
-                  <span className="text-sm text-gray-500">
-                    {quantity} item{quantity > 1 ? 's' : ''}
-                  </span>
                 </div>
-              </div>
+              )}
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
-                <button
-                  onClick={handleAddToCart}
-                  className={`flex-1 py-3 px-6 font-bold uppercase tracking-wider text-sm rounded-full transition-all duration-300 ${
-                    added
-                      ? "bg-green-500 text-white shadow-md"
-                      : "bg-gradient-to-r from-purple-500 via-purple-400 to-blue-400 text-white hover:scale-105 hover:-translate-y-0.5 hover:shadow-purple-300/30"
-                  }`}
-                >
-                  {added ? "Added! ✓" : "Add to Cart"}
-                </button>
-                <button
-                  onClick={handleBuyNow}
-                  className="flex-1 py-3 px-6 font-bold uppercase tracking-wider text-sm rounded-full border-2 border-purple-400 text-purple-600 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-400 hover:text-white hover:border-transparent transition-all duration-300"
-                >
-                  Buy It Now
-                </button>
+                {isOutOfStock ? (
+                  <button
+                    disabled
+                    className="flex-1 py-3 px-6 font-bold uppercase tracking-wider text-sm rounded-full bg-gray-300 text-gray-500 cursor-not-allowed"
+                  >
+                    Out of Stock
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleAddToCart}
+                      className={`flex-1 py-3 px-6 font-bold uppercase tracking-wider text-sm rounded-full transition-all duration-300 ${
+                        added
+                          ? "bg-green-500 text-white shadow-md"
+                          : "bg-gradient-to-r from-purple-500 via-purple-400 to-blue-400 text-white hover:scale-105 hover:-translate-y-0.5 hover:shadow-purple-300/30"
+                      }`}
+                    >
+                      {added ? "Added! ✓" : "Add to Cart"}
+                    </button>
+                    <button
+                      onClick={handleBuyNow}
+                      className="flex-1 py-3 px-6 font-bold uppercase tracking-wider text-sm rounded-full border-2 border-purple-400 text-purple-600 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-400 hover:text-white hover:border-transparent transition-all duration-300"
+                    >
+                      Buy It Now
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -548,6 +640,14 @@ const ProductDetails = () => {
                         alt={related.name}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
+                      {/* Show out of stock badge on related products */}
+                      {(!related.inStock || (related.stockQuantity !== undefined && related.stockQuantity <= 0)) && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                          <span className="text-white text-xs font-bold px-2 py-1 bg-red-600 rounded-full">
+                            Out of Stock
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <div className="mt-3">
                       <h3 className="text-sm font-medium text-[#1e1b4b] group-hover:text-purple-600 transition-colors">
