@@ -1,414 +1,141 @@
-import nodemailer from 'nodemailer';
+import express from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import connectDB from './config/database.js';
+import productRoutes from './routes/products.js';
+import cartRoutes from './routes/cart.js';
+import wishlistRoutes from './routes/wishlist.js';
+import authRoutes from './routes/auth.js';
+import orderRoutes from './routes/orders.js';
+import emailOTPRoutes from './routes/email-otp.js';
+import paymentRoutes from './routes/payment.js';
+import adminRoutes from './routes/admin.js';
+import uploadRoutes from './routes/upload.js';
+import subcategoryRoutes from './routes/subcategories.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import shippingRoutes from './routes/shipping.js';
+import combosRoutes from './routes/combo.js';
+
+// Add after other routes
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
-// Create email transporter
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+connectDB();
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// CORS configuration this is for main hosting
+// CORS configuration
+// CORS configuration - REPLACE your current cors() setup with this:
+
+// Enable preflight for all routes
+app.options('*', cors()); // This handles OPTIONS preflight requests
+
+// Your main CORS configuration
+app.use(cors({
+  origin: [
+    'http://localhost:8080', 
+    'http://127.0.0.1:8080', 
+    'http://localhost:5173',
+    'https://aazhiweb.vercel.app',
+    'https://theaazhi.com',
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id']
+}));
+
+// CORS configuration
+/*app.use(cors({
+  origin: ['http://localhost:8080', 'http://127.0.0.1:8080', 'http://localhost:5173'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id']
+}));*/
+
+app.use(express.json());
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Routes
+app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/email-otp', emailOTPRoutes);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/subcategories', subcategoryRoutes);
+app.use('/api/shipping', shippingRoutes);
+app.use('/api/combos', combosRoutes);
+
+// Debug route - list all endpoints
+app.get('/api/debug-routes', (req, res) => {
+  const routes = [];
+  
+  const extractRoutes = (stack, basePath = '') => {
+    if (!stack) return;
+    stack.forEach(layer => {
+      if (layer.route) {
+        const methods = Object.keys(layer.route.methods).join(', ');
+        routes.push(`${methods.toUpperCase()} ${basePath}${layer.route.path}`);
+      } else if (layer.name === 'router' && layer.handle && layer.handle.stack) {
+        const routerPath = basePath + (layer.regexp.source.replace(/\\/g, '').replace(/\^/g, '').replace(/\?/g, '').replace(/\/i/g, ''));
+        extractRoutes(layer.handle.stack, routerPath);
+      }
+    });
+  };
+  
+  if (app._router && app._router.stack) {
+    extractRoutes(app._router.stack);
   }
+  
+  res.json({ routes });
 });
 
-// Escape HTML to prevent XSS
-const escapeHtml = (text) => {
-  if (!text) return '';
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-};
-
-// ==================== OTP EMAIL FUNCTIONS ====================
-
-// Generate OTP email HTML
-const generateOTPEmailHTML = (otp, userName) => {
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Email OTP - Aazhi</title>
-      <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f5; }
-        .container { max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header { background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); color: white; padding: 30px 20px; text-align: center; }
-        .header h1 { margin: 0; font-size: 28px; letter-spacing: 2px; }
-        .content { padding: 30px; }
-        .otp-code { background: #f0f0f0; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0; }
-        .otp-code span { font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #2c3e50; }
-        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; border-top: 1px solid #eee; }
-        .button { display: inline-block; padding: 10px 20px; background: #2c3e50; color: white; text-decoration: none; border-radius: 5px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>✨ Aazhi ✨</h1>
-          <p>Email Verification</p>
-        </div>
-        <div class="content">
-          <h2>Hello ${escapeHtml(userName) || 'Valued Customer'}!</h2>
-          <p>You requested to login to your Aazhi account. Please use the following OTP to complete your login:</p>
-          <div class="otp-code">
-            <span>${otp}</span>
-          </div>
-          <p>This OTP is valid for <strong>10 minutes</strong>. Do not share this OTP with anyone.</p>
-          <p>If you didn't request this, please ignore this email.</p>
-          <p style="margin-top: 20px;">Thank you,<br><strong>The aazhi Team</strong> ❤️</p>
-        </div>
-        <div class="footer">
-          <p>&copy; ${new Date().getFullYear()} Aazhi. All rights reserved.</p>
-          <p>Made with ❤️ for little ones</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-};
-
-// Send OTP via Email
-export const sendOTPEmail = async (email, otp, userName) => {
-  try {
-    const html = generateOTPEmailHTML(otp, userName);
-    
-    const mailOptions = {
-      from: `"Aazhi" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: '🔐 Your Aazhi Login OTP',
-      html: html
-    };
-    
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ OTP email sent to: ${email}, Message ID: ${info.messageId}`);
-    return true;
-  } catch (error) {
-    console.error('❌ OTP email error:', error.message);
-    if (error.message.includes('Invalid login')) {
-      console.error('⚠️ Please check your Gmail credentials in .env file');
-      console.error('⚠️ Make sure you generated an App Password (not your regular password)');
-    }
-    return false;
-  }
-};
-
-// ==================== ORDER CONFIRMATION EMAIL FUNCTIONS ====================
-
-// Generate order items table HTML
-const generateItemsTable = (items) => {
-  if (!items || items.length === 0) return '<p>No items</p>';
-  
-  let tableHtml = `
-    <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif;">
-      <thead>
-        <tr style="background-color: #2c3e50; color: white;">
-          <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Product</th>
-          <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Quantity</th>
-          <th style="padding: 12px; text-align: right; border: 1px solid #ddd;">Price</th>
-          <th style="padding: 12px; text-align: right; border: 1px solid #ddd;">Total</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-  
-  for (const item of items) {
-    const itemTotal = item.price * item.quantity;
-    tableHtml += `
-      <tr style="border-bottom: 1px solid #ddd;">
-        <td style="padding: 10px; border: 1px solid #ddd;">${escapeHtml(item.name)}</td>
-        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${item.quantity}</td>
-        <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">₹${item.price.toLocaleString()}</td>
-        <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">₹${itemTotal.toLocaleString()}</td>
-      </tr>
-    `;
-  }
-  
-  tableHtml += `
-      </tbody>
-    </table>
-  `;
-  
-  return tableHtml;
-};
-
-// Generate order confirmation email HTML
-const generateOrderEmailHTML = (orderDetails, customerName) => {
-  const itemsTable = generateItemsTable(orderDetails.items);
-  
-  const shippingAddressHtml = `
-    <strong>${escapeHtml(orderDetails.shippingAddress.fullName)}</strong><br>
-    ${escapeHtml(orderDetails.shippingAddress.address)}<br>
-    ${escapeHtml(orderDetails.shippingAddress.city)}, ${escapeHtml(orderDetails.shippingAddress.state)} - ${escapeHtml(orderDetails.shippingAddress.pincode)}<br>
-    Phone: ${escapeHtml(orderDetails.shippingAddress.phone)}
-  `;
-  
-  const orderDate = new Date(orderDetails.createdAt).toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Tiiny Berry API is running',
+    timestamp: new Date().toISOString()
   });
-  
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Order Confirmation - Aazhi</title>
-      <style>
-        body {
-          font-family: 'Segoe UI', Arial, sans-serif;
-          line-height: 1.6;
-          color: #333;
-          margin: 0;
-          padding: 0;
-          background-color: #f5f5f5;
-        }
-        .container {
-          max-width: 600px;
-          margin: 0 auto;
-          background-color: #ffffff;
-          border-radius: 10px;
-          overflow: hidden;
-          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .header {
-          background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-          color: white;
-          padding: 30px 20px;
-          text-align: center;
-        }
-        .header h1 {
-          margin: 0;
-          font-size: 28px;
-          letter-spacing: 2px;
-        }
-        .header p {
-          margin: 5px 0 0;
-          opacity: 0.9;
-        }
-        .content {
-          padding: 30px;
-        }
-        .order-details {
-          background: #f8f9fa;
-          padding: 20px;
-          border-radius: 8px;
-          margin: 20px 0;
-          border: 1px solid #e9ecef;
-        }
-        .order-details h3 {
-          margin-top: 0;
-          color: #2c3e50;
-        }
-        .total {
-          text-align: right;
-          margin-top: 20px;
-          padding-top: 15px;
-          border-top: 2px solid #dee2e6;
-        }
-        .total h3 {
-          font-size: 20px;
-          color: #2c3e50;
-          margin: 0;
-        }
-        .footer {
-          background: #f8f9fa;
-          padding: 20px;
-          text-align: center;
-          font-size: 12px;
-          color: #6c757d;
-          border-top: 1px solid #dee2e6;
-        }
-        .button {
-          display: inline-block;
-          padding: 12px 24px;
-          background: #2c3e50;
-          color: white;
-          text-decoration: none;
-          border-radius: 5px;
-          margin-top: 15px;
-        }
-        .success-badge {
-          display: inline-block;
-          background: #28a745;
-          color: white;
-          padding: 5px 15px;
-          border-radius: 20px;
-          font-size: 12px;
-          font-weight: bold;
-        }
-        @media only screen and (max-width: 480px) {
-          .content {
-            padding: 15px;
-          }
-          table {
-            font-size: 12px;
-          }
-          th, td {
-            padding: 6px !important;
-          }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>✨ Aazhi ✨</h1>
-          <p>Where Little Dreams Take Flight</p>
-        </div>
-        
-        <div class="content">
-          <div style="text-align: center; margin-bottom: 20px;">
-            <span class="success-badge">✓ ORDER CONFIRMED</span>
-          </div>
-          
-          <h2>Hello ${escapeHtml(customerName)}!</h2>
-          <p>Thank you for shopping with <strong>Aazhi</strong>. Your order has been received and is being processed with care.</p>
-          
-          <div class="order-details">
-            <h3>📦 Order #${orderDetails.orderNumber}</h3>
-            <p><strong>Order Date:</strong> ${orderDate}</p>
-            <p><strong>Payment Method:</strong> ${orderDetails.paymentMethod.toUpperCase()}</p>
-            <p><strong>Payment Status:</strong> ${orderDetails.paymentStatus === 'paid' ? '✅ Paid' : '⏳ Pending'}</p>
-            
-            <h3 style="margin-top: 20px;">🛍️ Order Items:</h3>
-            ${itemsTable}
-            
-            <div class="total">
-              <p><strong>Subtotal:</strong> ₹${orderDetails.subtotal.toLocaleString()}</p>
-              <p><strong>Shipping:</strong> ${orderDetails.shipping === 0 ? 'FREE' : `₹${orderDetails.shipping.toLocaleString()}`}</p>
-              <h3>Total Amount: ₹${orderDetails.total.toLocaleString()}</h3>
-            </div>
-          </div>
-          
-          <div class="order-details">
-            <h3>📍 Shipping Address</h3>
-            <p>${shippingAddressHtml}</p>
-          </div>
-          
-          <div class="order-details">
-            <h3>📞 Need Help?</h3>
-            <p>If you have any questions about your order, please contact us:</p>
-            <p>📧 Email: support@Aazhi.com<br>
-            📱 Phone: +91 12345 67890</p>
-          </div>
-          
-          <div style="text-align: center;">
-            <a href="${process.env.FRONTEND_URL || 'http://localhost:8080'}/orders" class="button">Track Your Order</a>
-          </div>
-          
-          <p style="margin-top: 20px; font-size: 14px; color: #666;">
-            We'll notify you once your order is shipped. Thank you for choosing Aazhi!
-          </p>
-          
-          <p style="margin-top: 10px;">
-            With love,<br>
-            <strong>The Aazhi Team</strong> ❤️
-          </p>
-        </div>
-        
-        <div class="footer">
-          <p>&copy; ${new Date().getFullYear()} Aazhi. All rights reserved.</p>
-          <p>Made with ❤️ for little ones</p>
-          <p style="margin-top: 10px;">
-            <a href="#" style="color: #6c757d; text-decoration: none;">Privacy Policy</a> | 
-            <a href="#" style="color: #6c757d; text-decoration: none;">Terms of Service</a>
-          </p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-};
+});
 
-// Send order confirmation email
-export const sendOrderConfirmation = async (orderDetails, customerEmail, customerName) => {
-  try {
-    console.log(`📧 Sending order confirmation email to: ${customerEmail}`);
-    
-    // Verify connection
-    await transporter.verify();
-    console.log('✅ Gmail connection verified');
-    
-    const emailHtml = generateOrderEmailHTML(orderDetails, customerName);
-    
-    const mailOptions = {
-      from: `"Aazhi" <${process.env.EMAIL_USER}>`,
-      to: customerEmail,
-      subject: `🎉 Order Confirmation #${orderDetails.orderNumber} - Aazhi`,
-      html: emailHtml,
-      replyTo: 'support@Aazhi.com'
-    };
-    
-    const info = await transporter.sendMail(mailOptions);
-    
-    console.log(`✅ Order confirmation email sent successfully to: ${customerEmail}`);
-    console.log(`📧 Message ID: ${info.messageId}`);
-    
-    return true;
-  } catch (error) {
-    console.error('❌ Order confirmation email error:', error.message);
-    if (error.message.includes('Invalid login')) {
-      console.error('⚠️ Please check your Gmail credentials in .env file');
-      console.error('⚠️ Make sure you generated an App Password (not your regular password)');
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Tiiny Berry API is running!',
+    endpoints: {
+      products: '/api/products',
+      cart: '/api/cart',
+      wishlist: '/api/wishlist',
+      auth: '/api/auth',
+      orders: '/api/orders',
+      'email-otp': '/api/email-otp',
+      payment: '/api/payment',
+      admin: '/api/admin',
+      upload: '/api/upload',
+      subcategories: '/api/subcategories',
+      health: '/api/health',
+      'debug-routes': '/api/debug-routes'
     }
-    return false;
-  }
-};
+  });
+});
 
-// ==================== TEST EMAIL FUNCTION ====================
+// Error handler
+app.use(errorHandler);
 
-// Test email function
-export const sendTestEmail = async (testEmail) => {
-  try {
-    await transporter.verify();
-    
-    const testOrder = {
-      orderNumber: 'TEST-001',
-      items: [
-        { name: 'Test Product 1', price: 599, quantity: 2 },
-        { name: 'Test Product 2', price: 399, quantity: 1 }
-      ],
-      subtotal: 1597,
-      shipping: 0,
-      total: 1597,
-      paymentMethod: 'cod',
-      paymentStatus: 'pending',
-      shippingAddress: {
-        fullName: 'Test Customer',
-        address: '123 Test Street',
-        city: 'Test City',
-        state: 'Test State',
-        pincode: '123456',
-        phone: '9876543210'
-      },
-      createdAt: new Date()
-    };
-    
-    const emailHtml = generateOrderEmailHTML(testOrder, 'Test Customer');
-    
-    const mailOptions = {
-      from: `"Aazhi" <${process.env.EMAIL_USER}>`,
-      to: testEmail,
-      subject: 'Test Email - Aazhi Email System',
-      html: emailHtml
-    };
-    
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Test email sent to: ${testEmail}`);
-    console.log(`📧 Message ID: ${info.messageId}`);
-    return true;
-  } catch (error) {
-    console.error('❌ Test email failed:', error.message);
-    return false;
-  }
-};
-
-// Export transporter for potential reuse
-export { transporter };
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`📦 MongoDB connected - Data is now persistent!`);
+});
