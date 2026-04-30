@@ -5,10 +5,17 @@ dotenv.config();
 
 // Create email transporter
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false, // true for 465, false for other ports
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
+  },
+  // Force Node.js to prefer IPv4 over IPv6
+  family: 4, // This is the key - forces IPv4 only
+  tls: {
+    ciphers: 'SSLv3'
   }
 });
 
