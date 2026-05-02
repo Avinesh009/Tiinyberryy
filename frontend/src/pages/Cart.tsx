@@ -1,38 +1,102 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCart } from "@/context/useCart";
 import { useNavigate } from "react-router-dom";
 import { Trash2, ArrowLeft, Minus, Plus, ShoppingBag } from "lucide-react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import BackToTop from "@/components/BackToTop";
+import { toast } from "sonner";
 
-// Update CartItem interface locally (if not exported from types)
+// Update CartItem interface
 interface CartItem {
   productId: number;
   name: string;
   price: number;
   image: string;
-  size?: string;  // Make size optional
+  size?: string;
   quantity: number;
 }
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const Cart = () => {
   const { cartItems, updateQuantity, removeFromCart, cartCount, loading } = useCart();
   const navigate = useNavigate();
   const token = localStorage.getItem('tiinyberry_token');
+  const [stockInfo, setStockInfo] = useState<Map<string, number>>(new Map());
+  const [checkingStock, setCheckingStock] = useState(false);
+
+  // Fetch stock info for all cart items
+  useEffect(() => {
+    const fetchStockInfo = async () => {
+      if (cartItems.length === 0) return;
+      
+      setCheckingStock(true);
+      try {
+        const stockMap = new Map<string, number>();
+        
+        for (const item of cartItems) {
+          const response = await fetch(`${API_URL}/products/product/${item.productId}`);
+          if (response.ok) {
+            const product = await response.json();
+            
+            // Check if product has new size structure
+            if (product.sizes && product.sizes.length > 0 && typeof product.sizes[0] === 'object') {
+              // Find the specific size
+              const sizeObj = product.sizes.find((s: any) => s.name === item.size);
+              if (sizeObj) {
+                stockMap.set(`${item.productId}-${item.size}`, sizeObj.stock);
+              } else if (product.sizes[0].name === 'One Size') {
+                stockMap.set(`${item.productId}-${item.size}`, product.sizes[0].stock);
+              }
+            } else if (product.stockQuantity !== undefined) {
+              // Old format
+              stockMap.set(`${item.productId}-${item.size || ''}`, product.stockQuantity);
+            }
+          }
+        }
+        
+        setStockInfo(stockMap);
+      } catch (error) {
+        console.error('Error fetching stock info:', error);
+      } finally {
+        setCheckingStock(false);
+      }
+    };
+    
+    fetchStockInfo();
+  }, [cartItems]);
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const shipping = subtotal > 3000 ? 0 : 100;
   const total = subtotal + shipping;
 
-  const handleQuantityChange = async (productId: number, newQuantity: number) => {
-    if (newQuantity < 1) return;
-    await updateQuantity(productId, newQuantity);
+  // Get available stock for an item
+  const getAvailableStock = (item: CartItem): number => {
+    const key = `${item.productId}-${item.size || ''}`;
+    return stockInfo.get(key) || Infinity;
   };
 
-  const handleRemove = async (productId: number) => {
+  const handleQuantityChange = async (item: CartItem, newQuantity: number) => {
+    if (newQuantity < 1) return;
+    
+    // Check stock availability
+    const availableStock = getAvailableStock(item);
+    if (newQuantity > availableStock) {
+      toast.error(`Only ${availableStock} items available in ${item.size || 'this size'}`);
+      return;
+    }
+    
+    // Pass size as third parameter
+    await updateQuantity(item.productId, newQuantity, item.size);
+  };
+
+  const handleRemove = async (item: CartItem) => {
     if (window.confirm('Are you sure you want to remove this item?')) {
-      await removeFromCart(productId);
+      // Pass size as second parameter
+      await removeFromCart(item.productId, item.size);
     }
   };
 
@@ -40,16 +104,13 @@ const Cart = () => {
     if (token) {
       navigate('/checkout');
     } else {
-      // For guest users, show login modal or go to guest checkout
       window.dispatchEvent(new CustomEvent('showLoginModal', { 
         detail: { message: 'Login to save your order history, or continue as guest' } 
       }));
-      // You can also navigate to guest checkout
-      // navigate('/guest-checkout');
     }
   };
 
-  if (loading) {
+  if (loading || checkingStock) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#f5efff] via-[#e8f0fe] to-[#faf5ff]">
         <AnnouncementBar />
@@ -104,75 +165,109 @@ const Cart = () => {
                   <div className="md:col-span-2 text-right">Total</div>
                 </div>
                 
-                {cartItems.map((item, index) => (
-                  <div 
-                    key={`${item.productId}-${index}`}
-                    className="border-b border-purple-100 py-6 transition-all duration-300 hover:bg-white/30 hover:rounded-xl hover:translate-x-1"
-                  >
-                    <div className="grid md:grid-cols-12 gap-4 items-center">
-                      {/* Product Image & Name */}
-                      <div className="md:col-span-6 flex gap-4">
-                        <img 
-                          src={item.image} 
-                          alt={item.name} 
-                          className="w-20 h-20 object-cover rounded-xl shadow-md transition-all duration-300 hover:scale-105 hover:shadow-purple-200/50"
-                        />
-                        <div className="flex-1">
-                          <h3 className="font-medium text-[#1e1b4b] hover:text-purple-500 transition-colors duration-200">
-                            {item.name}
-                          </h3>
-                          {item.size && item.size !== '' && (
-                            <p className="text-sm mt-1 inline-block px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-100/50 to-blue-100/50 text-purple-800 border border-purple-300">
-                              Size: {item.size}
+                {cartItems.map((item, index) => {
+                  const availableStock = getAvailableStock(item);
+                  const isLowStock = availableStock <= 3 && availableStock > 0;
+                  const isOutOfStock = availableStock === 0;
+                  
+                  return (
+                    <div 
+                      key={`${item.productId}-${item.size}-${index}`}
+                      className={`border-b border-purple-100 py-6 transition-all duration-300 hover:bg-white/30 hover:rounded-xl hover:translate-x-1 ${
+                        isOutOfStock ? 'opacity-60 bg-red-50/30' : ''
+                      }`}
+                    >
+                      <div className="grid md:grid-cols-12 gap-4 items-center">
+                        {/* Product Image & Name */}
+                        <div className="md:col-span-6 flex gap-4">
+                          <img 
+                            src={item.image} 
+                            alt={item.name} 
+                            className="w-20 h-20 object-cover rounded-xl shadow-md transition-all duration-300 hover:scale-105 hover:shadow-purple-200/50"
+                          />
+                          <div className="flex-1">
+                            <h3 className="font-medium text-[#1e1b4b] hover:text-purple-500 transition-colors duration-200">
+                              {item.name}
+                            </h3>
+                            {item.size && item.size !== '' && (
+                              <p className="text-sm mt-1 inline-block px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-100/50 to-blue-100/50 text-purple-800 border border-purple-300">
+                                Size: {item.size}
+                              </p>
+                            )}
+                            {/* Low stock warning */}
+                            {isLowStock && !isOutOfStock && (
+                              <p className="text-xs text-orange-600 mt-2 animate-pulse">
+                                ⚠️ Only {availableStock} left in stock!
+                              </p>
+                            )}
+                            {isOutOfStock && (
+                              <p className="text-xs text-red-600 mt-2">
+                                ❌ Out of stock - Please remove this item
+                              </p>
+                            )}
+                            <button
+                              onClick={() => handleRemove(item)}
+                              className="text-red-400 text-sm hover:text-red-600 mt-2 flex items-center gap-1 transition-all duration-300 hover:gap-2"
+                            >
+                              <Trash2 size={14} />
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {/* Price */}
+                        <div className="md:col-span-2 text-center">
+                          <span className="font-semibold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+                            Rs. {item.price.toLocaleString()}
+                          </span>
+                        </div>
+                        
+                        {/* Quantity */}
+                        <div className="md:col-span-2">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleQuantityChange(item, item.quantity - 1)}
+                              disabled={isOutOfStock}
+                              className={`w-8 h-8 flex items-center justify-center rounded-full border transition-all duration-300 ${
+                                isOutOfStock
+                                  ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                                  : 'border-purple-200 bg-white/60 text-purple-500 hover:bg-gradient-to-r hover:from-purple-400 hover:to-purple-300 hover:text-white hover:border-transparent hover:scale-105 active:scale-95'
+                              }`}
+                            >
+                              <Minus size={14} />
+                            </button>
+                            <span className="w-10 text-center font-medium text-[#1e1b4b]">
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() => handleQuantityChange(item, item.quantity + 1)}
+                              disabled={isOutOfStock || item.quantity >= availableStock}
+                              className={`w-8 h-8 flex items-center justify-center rounded-full border transition-all duration-300 ${
+                                isOutOfStock || item.quantity >= availableStock
+                                  ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                                  : 'border-purple-200 bg-white/60 text-purple-500 hover:bg-gradient-to-r hover:from-purple-400 hover:to-purple-300 hover:text-white hover:border-transparent hover:scale-105 active:scale-95'
+                              }`}
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </div>
+                          {!isOutOfStock && availableStock < 10 && availableStock > 0 && (
+                            <p className="text-xs text-center text-orange-500 mt-1">
+                              Max: {availableStock}
                             </p>
                           )}
-                          <button
-                            onClick={() => handleRemove(item.productId)}
-                            className="text-red-400 text-sm hover:text-red-600 mt-2 flex items-center gap-1 transition-all duration-300 hover:gap-2"
-                          >
-                            <Trash2 size={14} />
-                            Remove
-                          </button>
                         </div>
-                      </div>
-                      
-                      {/* Price */}
-                      <div className="md:col-span-2 text-center">
-                        <span className="font-semibold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-                          Rs. {item.price.toLocaleString()}
-                        </span>
-                      </div>
-                      
-                      {/* Quantity */}
-                      <div className="md:col-span-2">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => handleQuantityChange(item.productId, item.quantity - 1)}
-                            className="w-8 h-8 flex items-center justify-center rounded-full border border-purple-200 bg-white/60 text-purple-500 transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-400 hover:to-purple-300 hover:text-white hover:border-transparent hover:scale-105 active:scale-95"
-                          >
-                            <Minus size={14} />
-                          </button>
-                          <span className="w-10 text-center font-medium text-[#1e1b4b]">
-                            {item.quantity}
+                        
+                        {/* Total */}
+                        <div className="md:col-span-2 text-right">
+                          <span className="font-semibold text-purple-600">
+                            Rs. {(item.price * item.quantity).toLocaleString()}
                           </span>
-                          <button
-                            onClick={() => handleQuantityChange(item.productId, item.quantity + 1)}
-                            className="w-8 h-8 flex items-center justify-center rounded-full border border-purple-200 bg-white/60 text-purple-500 transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-400 hover:to-purple-300 hover:text-white hover:border-transparent hover:scale-105 active:scale-95"
-                          >
-                            <Plus size={14} />
-                          </button>
                         </div>
-                      </div>
-                      
-                      {/* Total */}
-                      <div className="md:col-span-2 text-right">
-                        <span className="font-semibold text-purple-600">
-                          Rs. {(item.price * item.quantity).toLocaleString()}
-                        </span>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Order Summary */}
@@ -208,7 +303,7 @@ const Cart = () => {
                 </div>
                 
                 <button 
-                  onClick={() => navigate('/checkout')}
+                  onClick={handleCheckout}
                   className="w-full py-3 rounded-full font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-purple-300/40 bg-gradient-to-r from-purple-500 via-purple-400 to-blue-400"
                 >
                   Proceed to Checkout

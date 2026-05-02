@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BackToTop from "@/components/BackToTop";
 import AnnouncementBar from "@/components/AnnouncementBar";
+import { toast } from "sonner";
 
 interface Color {
   name: string;
@@ -19,12 +20,14 @@ interface Size {
 }
 
 interface Product {
+  _id?: string;
   productId: number;
   name: string;
   price: number;
   originalPrice: number | null;
   badge: string | null;
   image: string;
+  images?: string[];
   category: string;
   age?: string;
   description?: string;
@@ -32,6 +35,7 @@ interface Product {
   colors?: Color[];
   subcategory?: string;
   inStock?: boolean;
+  stockQuantity?: number;
 }
 
 interface WishlistItem {
@@ -81,7 +85,9 @@ const CategoryPage = () => {
 
   // Helper function to get total stock from sizes
   const getTotalStock = (product: Product): number => {
-    if (!product.sizes || product.sizes.length === 0) return 0;
+    if (!product.sizes || product.sizes.length === 0) {
+      return product.stockQuantity || 0;
+    }
     
     // Check if new format (array of objects with stock)
     if (typeof product.sizes[0] === 'object' && product.sizes[0] !== null && 'stock' in product.sizes[0]) {
@@ -96,7 +102,9 @@ const CategoryPage = () => {
   const isProductInStock = (product: Product): boolean => {
     if (product.inStock === false) return false;
     
-    if (!product.sizes || product.sizes.length === 0) return true;
+    if (!product.sizes || product.sizes.length === 0) {
+      return (product.stockQuantity || 0) > 0;
+    }
     
     // Check new format
     if (typeof product.sizes[0] === 'object' && product.sizes[0] !== null && 'stock' in product.sizes[0]) {
@@ -107,12 +115,13 @@ const CategoryPage = () => {
     return true;
   };
 
-  // Helper function to get low stock count (for warning)
+  // Helper function to get low stock info (threshold = 3)
   const getLowStockInfo = (product: Product): { hasLowStock: boolean; lowestStock: number; sizeName?: string } => {
-    if (!product.sizes || product.sizes.length === 0) return { hasLowStock: false, lowestStock: 0 };
-    
-    // Check new format
-    if (typeof product.sizes[0] === 'object' && product.sizes[0] !== null && 'stock' in product.sizes[0]) {
+    // Check new size format
+    if (product.sizes && product.sizes.length > 0 && 
+        typeof product.sizes[0] === 'object' && 
+        product.sizes[0] !== null && 
+        'stock' in product.sizes[0]) {
       const sizes = product.sizes as Size[];
       const sizesWithStock = sizes.filter(size => size.stock > 0 && size.stock <= 3);
       
@@ -120,6 +129,11 @@ const CategoryPage = () => {
         const lowest = sizesWithStock.reduce((min, size) => size.stock < min.stock ? size : min, sizesWithStock[0]);
         return { hasLowStock: true, lowestStock: lowest.stock, sizeName: lowest.name };
       }
+    }
+    
+    // Check old format with stockQuantity
+    if (product.stockQuantity !== undefined && product.stockQuantity <= 3 && product.stockQuantity > 0) {
+      return { hasLowStock: true, lowestStock: product.stockQuantity, sizeName: undefined };
     }
     
     return { hasLowStock: false, lowestStock: 0 };
@@ -171,8 +185,22 @@ const CategoryPage = () => {
         }
         
         const data = await response.json();
-        console.log('Received products:', data.length);
-        setProducts(Array.isArray(data) ? data : []);
+        console.log('Received data:', data);
+        
+        // Handle different response formats
+        let productsArray: Product[] = [];
+        if (Array.isArray(data)) {
+          productsArray = data;
+        } else if (data.success && Array.isArray(data.products)) {
+          productsArray = data.products;
+        } else if (data.products && Array.isArray(data.products)) {
+          productsArray = data.products;
+        } else {
+          productsArray = [];
+        }
+        
+        console.log('Products array:', productsArray.length);
+        setProducts(productsArray);
         
       } catch (error) {
         console.error('Error fetching products:', error);
@@ -220,6 +248,7 @@ const CategoryPage = () => {
           headers: { 'x-session-id': sessionId }
         });
         setWishlisted(wishlisted.filter(x => x !== id));
+        toast.success('Removed from wishlist');
       } else {
         await fetch(`${API_URL}/wishlist/add`, {
           method: 'POST',
@@ -230,9 +259,11 @@ const CategoryPage = () => {
           body: JSON.stringify({ productId: id })
         });
         setWishlisted([...wishlisted, id]);
+        toast.success('Added to wishlist');
       }
     } catch (error) {
       console.error('Failed to toggle wishlist:', error);
+      toast.error('Something went wrong');
     }
   };
 
@@ -241,6 +272,7 @@ const CategoryPage = () => {
     
     // Check if product has stock
     if (!isProductInStock(product)) {
+      toast.error('This product is out of stock!');
       return;
     }
     
@@ -269,7 +301,10 @@ const CategoryPage = () => {
     
     if (success) {
       setAdded((prev) => [...prev, product.productId]);
+      toast.success(`Added ${product.name} to cart!`);
       setTimeout(() => setAdded((prev) => prev.filter((x) => x !== product.productId)), 1800);
+    } else {
+      toast.error('Failed to add to cart');
     }
   };
 
@@ -349,12 +384,11 @@ const CategoryPage = () => {
               {products.map((product) => {
                 const inStock = isProductInStock(product);
                 const lowStockInfo = getLowStockInfo(product);
-                const totalStock = getTotalStock(product);
                 const sizesDisplay = getSizesDisplay(product);
                 
                 return (
                   <div 
-                    key={product.productId} 
+                    key={product.productId || product._id} 
                     className={`group cursor-pointer transition-all duration-300 hover:-translate-y-1 ${
                       !inStock ? 'opacity-70' : ''
                     }`}
@@ -423,7 +457,7 @@ const CategoryPage = () => {
                       
                       {product.description && (
                         <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                          {product.description}
+                          {product.description.substring(0, 60)}...
                         </p>
                       )}
                       
@@ -445,7 +479,7 @@ const CategoryPage = () => {
                       {/* LOW STOCK TEXT WARNING below price - shows when 3 or less */}
                       {inStock && lowStockInfo.hasLowStock && (
                         <p className="text-xs text-orange-600 font-medium mt-1 animate-pulse">
-                          ⚡ Only {lowStockInfo.lowestStock} left in {lowStockInfo.sizeName} - order soon!
+                          ⚡ Only {lowStockInfo.lowestStock} left {lowStockInfo.sizeName ? `in ${lowStockInfo.sizeName}` : 'in stock'} - order soon!
                         </p>
                       )}
                       
@@ -484,19 +518,3 @@ const CategoryPage = () => {
 };
 
 export default CategoryPage;
-
-/* Add this to your global CSS or component styles */
-const styles = `
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-`;
