@@ -179,10 +179,10 @@ const ProductDetails = () => {
       if (selectedSize.stock === 0) {
         return { text: "Out of Stock", color: "text-red-600", bg: "bg-red-100", badge: "bg-red-100 text-red-800" };
       }
-      if (selectedSize.stock <= 5) {
+      if (selectedSize.stock <= 3) {
         return { text: `⚠️ Only ${selectedSize.stock} left in ${selectedSize.name}`, color: "text-orange-600", bg: "bg-orange-100", badge: "bg-orange-100 text-orange-800 animate-pulse" };
       }
-      if (selectedSize.stock <= 10) {
+      if (selectedSize.stock <= 3) {
         return { text: `📦 Only ${selectedSize.stock} left`, color: "text-yellow-600", bg: "bg-yellow-100", badge: "bg-yellow-100 text-yellow-800" };
       }
       return { text: "✓ In Stock", color: "text-green-600", bg: "bg-green-100", badge: "bg-green-100 text-green-800" };
@@ -583,7 +583,7 @@ const ProductDetails = () => {
                         }`}
                       >
                         {sizeObj.name}
-                        {sizeObj.stock > 0 && sizeObj.stock <= 5 && (
+                        {sizeObj.stock > 0 && sizeObj.stock <= 3 && (
                           <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full px-1.5 py-0.5">
                             Only {sizeObj.stock}
                           </span>
@@ -594,7 +594,7 @@ const ProductDetails = () => {
                       </button>
                     ))}
                   </div>
-                  {selectedSize && selectedSize.stock > 0 && selectedSize.stock <= 5 && (
+                  {selectedSize && selectedSize.stock > 0 && selectedSize.stock <= 3 && (
                     <p className="text-orange-600 text-sm mt-2">
                       ⚠️ Hurry! Only {selectedSize.stock} left in {selectedSize.name} size
                     </p>
@@ -624,7 +624,7 @@ const ProductDetails = () => {
                     <span className="text-sm text-gray-500">
                       {quantity} item{quantity > 1 ? 's' : ''}
                     </span>
-                    {selectedSize && selectedSize.stock <= 10 && selectedSize.stock > 0 && (
+                    {selectedSize && selectedSize.stock <= 3 && selectedSize.stock > 0 && (
                       <span className="text-xs text-orange-600 animate-pulse">
                         Only {selectedSize.stock} left in this size!
                       </span>
