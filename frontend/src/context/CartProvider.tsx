@@ -49,7 +49,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('Fetch cart response:', data);
         const items = Array.isArray(data) ? data : (data.items || []);
         
-        // Log each item's details including color
+        // Log each item's details including color and size
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         items.forEach((item: any, index: number) => {
           console.log(`Cart item ${index + 1}:`, {
@@ -79,46 +79,48 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [fetchCart]);
 
   const addToCart = async (productId: number, quantity: number = 1, size: string = '', color: string = '', colorImage: string = '') => {
-  setLoading(true);
-  try {
-    console.log('Adding to cart:', { productId, quantity, size, color, colorImage });
-    
-    const response = await fetch(`${API_URL}/cart/add`, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({ 
-        productId: Number(productId), 
-        quantity: Number(quantity), 
-        size: size || '', 
-        color: color || '',
-        colorImage: colorImage || ''
-      })
-    });
-    
-    const data = await response.json();
-    console.log('Add to cart response:', data);
-    
-    if (response.ok) {
-      await fetchCart();
-      return true;
-    } else {
-      console.error('Add to cart error:', data);
+    setLoading(true);
+    try {
+      console.log('Adding to cart:', { productId, quantity, size, color, colorImage });
+      
+      const response = await fetch(`${API_URL}/cart/add`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ 
+          productId: Number(productId), 
+          quantity: Number(quantity), 
+          size: size || '', 
+          color: color || '',
+          colorImage: colorImage || ''
+        })
+      });
+      
+      const data = await response.json();
+      console.log('Add to cart response:', data);
+      
+      if (response.ok) {
+        await fetchCart();
+        return true;
+      } else {
+        console.error('Add to cart error:', data);
+        return false;
+      }
+    } catch (error) {
+      console.error('Failed to add to cart:', error);
       return false;
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('Failed to add to cart:', error);
-    return false;
-  } finally {
-    setLoading(false);
-  }
-};
-  const updateQuantity = async (productId: number, quantity: number) => {
+  };
+
+  // UPDATED: updateQuantity now accepts size parameter
+  const updateQuantity = async (productId: number, quantity: number, size?: string) => {
     setLoading(true);
     try {
       const response = await fetch(`${API_URL}/cart/update/${productId}`, {
         method: 'PUT',
         headers: getHeaders(),
-        body: JSON.stringify({ quantity })
+        body: JSON.stringify({ quantity, size })
       });
       
       if (response.ok) {
@@ -134,10 +136,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const removeFromCart = async (productId: number) => {
+  // UPDATED: removeFromCart now accepts size parameter
+  const removeFromCart = async (productId: number, size?: string) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/cart/remove/${productId}`, {
+      let url = `${API_URL}/cart/remove/${productId}`;
+      if (size) {
+        url += `?size=${encodeURIComponent(size)}`;
+      }
+      
+      const response = await fetch(url, {
         method: 'DELETE',
         headers: getHeaders()
       });

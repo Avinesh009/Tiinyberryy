@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BackToTop from "@/components/BackToTop";
 import AnnouncementBar from "@/components/AnnouncementBar";
+import { toast } from "sonner";
 
 interface Color {
   name: string;
@@ -13,21 +14,30 @@ interface Color {
   images: string[];
 }
 
+interface Size {
+  name: string;
+  stock: number;
+}
+
 interface Product {
+  _id?: string;
   productId: number;
   name: string;
   price: number;
   originalPrice: number | null;
   badge: string | null;
   image: string;
+  images?: string[];
   category: string;
   age?: string;
   description?: string;
-  sizes?: string[];
+  sizes?: Size[] | string[];
   colors?: Color[];
   subcategory?: string;
   inStock?: boolean;        // ← ADD THIS
   stockQuantity?: number;   // ← ADD THIS (optional)
+  inStock?: boolean;
+  stockQuantity?: number;
 }
 
 interface WishlistItem {
@@ -75,6 +85,83 @@ const CategoryPage = () => {
     return 'Products';
   };
 
+  // Helper function to get total stock from sizes
+  const getTotalStock = (product: Product): number => {
+    if (!product.sizes || product.sizes.length === 0) {
+      return product.stockQuantity || 0;
+    }
+    
+    // Check if new format (array of objects with stock)
+    if (typeof product.sizes[0] === 'object' && product.sizes[0] !== null && 'stock' in product.sizes[0]) {
+      return (product.sizes as Size[]).reduce((total, size) => total + size.stock, 0);
+    }
+    
+    // Old format (array of strings) - assume in stock if has sizes
+    return (product.sizes as string[]).length > 0 ? 10 : 0;
+  };
+
+  // Helper function to check if product is in stock
+  const isProductInStock = (product: Product): boolean => {
+    if (product.inStock === false) return false;
+    
+    if (!product.sizes || product.sizes.length === 0) {
+      return (product.stockQuantity || 0) > 0;
+    }
+    
+    // Check new format
+    if (typeof product.sizes[0] === 'object' && product.sizes[0] !== null && 'stock' in product.sizes[0]) {
+      return (product.sizes as Size[]).some(size => size.stock > 0);
+    }
+    
+    // Old format - assume in stock
+    return true;
+  };
+
+  // Helper function to get low stock info (threshold = 3)
+  const getLowStockInfo = (product: Product): { hasLowStock: boolean; lowestStock: number; sizeName?: string } => {
+    // Check new size format
+    if (product.sizes && product.sizes.length > 0 && 
+        typeof product.sizes[0] === 'object' && 
+        product.sizes[0] !== null && 
+        'stock' in product.sizes[0]) {
+      const sizes = product.sizes as Size[];
+      const sizesWithStock = sizes.filter(size => size.stock > 0 && size.stock <= 3);
+      
+      if (sizesWithStock.length > 0) {
+        const lowest = sizesWithStock.reduce((min, size) => size.stock < min.stock ? size : min, sizesWithStock[0]);
+        return { hasLowStock: true, lowestStock: lowest.stock, sizeName: lowest.name };
+      }
+    }
+    
+    // Check old format with stockQuantity
+    if (product.stockQuantity !== undefined && product.stockQuantity <= 3 && product.stockQuantity > 0) {
+      return { hasLowStock: true, lowestStock: product.stockQuantity, sizeName: undefined };
+    }
+    
+    return { hasLowStock: false, lowestStock: 0 };
+  };
+
+  // Helper function to get display sizes text
+  const getSizesDisplay = (product: Product): string => {
+    if (!product.sizes || product.sizes.length === 0) return '';
+    
+    // Check new format
+    if (typeof product.sizes[0] === 'object' && product.sizes[0] !== null && 'stock' in product.sizes[0]) {
+      const sizes = product.sizes as Size[];
+      const availableSizes = sizes.filter(size => size.stock > 0).map(size => size.name);
+      if (availableSizes.length === 0) return '';
+      if (availableSizes.length === 1) return availableSizes[0];
+      if (availableSizes.length <= 3) return availableSizes.join(', ');
+      return `${availableSizes.slice(0, 3).join(', ')} +${availableSizes.length - 3}`;
+    }
+    
+    // Old format
+    const sizes = product.sizes as string[];
+    if (sizes.length === 1) return sizes[0];
+    if (sizes.length <= 3) return sizes.join(', ');
+    return `${sizes.slice(0, 3).join(', ')} +${sizes.length - 3}`;
+  };
+
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
@@ -100,8 +187,22 @@ const CategoryPage = () => {
         }
         
         const data = await response.json();
-        console.log('Received products:', data.length);
-        setProducts(Array.isArray(data) ? data : []);
+        console.log('Received data:', data);
+        
+        // Handle different response formats
+        let productsArray: Product[] = [];
+        if (Array.isArray(data)) {
+          productsArray = data;
+        } else if (data.success && Array.isArray(data.products)) {
+          productsArray = data.products;
+        } else if (data.products && Array.isArray(data.products)) {
+          productsArray = data.products;
+        } else {
+          productsArray = [];
+        }
+        
+        console.log('Products array:', productsArray.length);
+        setProducts(productsArray);
         
       } catch (error) {
         console.error('Error fetching products:', error);
@@ -149,6 +250,7 @@ const CategoryPage = () => {
           headers: { 'x-session-id': sessionId }
         });
         setWishlisted(wishlisted.filter(x => x !== id));
+        toast.success('Removed from wishlist');
       } else {
         await fetch(`${API_URL}/wishlist/add`, {
           method: 'POST',
@@ -159,20 +261,38 @@ const CategoryPage = () => {
           body: JSON.stringify({ productId: id })
         });
         setWishlisted([...wishlisted, id]);
+        toast.success('Added to wishlist');
       }
     } catch (error) {
       console.error('Failed to toggle wishlist:', error);
+      toast.error('Something went wrong');
     }
   };
 
   const handleAdd = async (product: Product, e: React.MouseEvent) => {
     e.stopPropagation();
     
+    // Check if product has stock
+    if (!isProductInStock(product)) {
+      toast.error('This product is out of stock!');
+      return;
+    }
+    
     let selectedSize = '';
     let selectedColor = '';
     
-    if (product.sizes && product.sizes.length > 0 && product.sizes[0] !== 'One Size') {
-      selectedSize = product.sizes[0];
+    // Get first available size for new format
+    if (product.sizes && product.sizes.length > 0) {
+      if (typeof product.sizes[0] === 'object' && product.sizes[0] !== null && 'stock' in product.sizes[0]) {
+        const availableSize = (product.sizes as Size[]).find(size => size.stock > 0);
+        if (availableSize) {
+          selectedSize = availableSize.name;
+        }
+      } else if (product.sizes[0] !== 'One Size') {
+        selectedSize = product.sizes[0] as string;
+      } else {
+        selectedSize = 'One Size';
+      }
     }
     
     if (product.colors && product.colors.length > 0) {
@@ -183,7 +303,10 @@ const CategoryPage = () => {
     
     if (success) {
       setAdded((prev) => [...prev, product.productId]);
+      toast.success(`Added ${product.name} to cart!`);
       setTimeout(() => setAdded((prev) => prev.filter((x) => x !== product.productId)), 1800);
+    } else {
+      toast.error('Failed to add to cart');
     }
   };
 
@@ -300,6 +423,133 @@ const CategoryPage = () => {
               <span className="text-white font-bold text-sm uppercase tracking-wider px-4 py-2 bg-red-600 rounded-full rotate-12 shadow-lg">
                 Out of Stock
               </span>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+              {products.map((product) => {
+                const inStock = isProductInStock(product);
+                const lowStockInfo = getLowStockInfo(product);
+                const sizesDisplay = getSizesDisplay(product);
+                
+                return (
+                  <div 
+                    key={product.productId || product._id} 
+                    className={`group cursor-pointer transition-all duration-300 hover:-translate-y-1 ${
+                      !inStock ? 'opacity-70' : ''
+                    }`}
+                    onClick={() => handleProductClick(product.productId)}
+                  >
+                    <div className="relative overflow-hidden rounded-xl bg-purple-50/50" style={{ aspectRatio: "3/4" }}>
+                      <img 
+                        src={product.image || defaultImage} 
+                        alt={product.name} 
+                        loading="lazy" 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = defaultImage;
+                        }}
+                      />
+                      
+                      {/* Existing Badge (Sale, New, etc.) */}
+                      {product.badge && inStock && (
+                        <span className="absolute top-3 left-3 text-[0.58rem] font-bold uppercase tracking-[0.1em] px-2.5 py-1 rounded-full bg-gradient-to-r from-purple-500 to-purple-400 text-white shadow-md">
+                          {product.badge}
+                        </span>
+                      )}
+                      
+                      {/* LOW STOCK BADGE - shows when stock is 3 or less */}
+                      {inStock && lowStockInfo.hasLowStock && (
+                        <span className="absolute top-3 right-3 text-[0.58rem] font-bold uppercase tracking-[0.1em] px-2.5 py-1 rounded-full bg-orange-500 text-white shadow-md animate-pulse">
+                          Only {lowStockInfo.lowestStock} left!
+                        </span>
+                      )}
+                      
+                      {/* OUT OF STOCK BADGE */}
+                      {!inStock && (
+                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                          <span className="text-white font-bold text-sm uppercase tracking-wider px-4 py-2 bg-red-600 rounded-full rotate-12 shadow-lg">
+                            Out of Stock
+                          </span>
+                        </div>
+                      )}
+                      
+                      {/* Wishlist Button - Hide for out of stock products */}
+                      {inStock && (
+                        <button
+                          onClick={(e) => toggleWish(product.productId, e)}
+                          className={`absolute bottom-3 right-3 w-8 h-8 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110 ${
+                            wishlisted.includes(product.productId) ? "text-red-500" : "text-gray-400 hover:text-red-500"
+                          }`}
+                          aria-label="Wishlist"
+                        >
+                          <Heart size={14} fill={wishlisted.includes(product.productId) ? "currentColor" : "none"} />
+                        </button>
+                      )}
+                    </div>
+                    
+                    <div className="mt-3.5">
+                      <h3 className="text-base font-medium text-[#1e1b4b] leading-snug font-heading hover:text-purple-600 transition-colors duration-200">
+                        {product.name}
+                      </h3>
+                      
+                      {/* Show sizes if available */}
+                      {sizesDisplay && (
+                        <p className="text-xs text-gray-400 mt-1">
+                          {sizesDisplay}
+                        </p>
+                      )}
+                      
+                      {product.description && (
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                          {product.description.substring(0, 60)}...
+                        </p>
+                      )}
+                      
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <span className={`text-[0.85rem] font-bold ${
+                          !inStock 
+                            ? 'text-gray-400' 
+                            : 'bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent'
+                        }`}>
+                          Rs. {product.price.toLocaleString()}
+                        </span>
+                        {product.originalPrice && (
+                          <span className="text-[0.78rem] text-gray-400 line-through">
+                            Rs. {product.originalPrice.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {/* LOW STOCK TEXT WARNING below price - shows when 3 or less */}
+                      {inStock && lowStockInfo.hasLowStock && (
+                        <p className="text-xs text-orange-600 font-medium mt-1 animate-pulse">
+                          ⚡ Only {lowStockInfo.lowestStock} left {lowStockInfo.sizeName ? `in ${lowStockInfo.sizeName}` : 'in stock'} - order soon!
+                        </p>
+                      )}
+                      
+                      {/* Add to Cart Button - Disabled for out of stock */}
+                      {!inStock ? (
+                        <button
+                          disabled
+                          className="w-full mt-3 py-2.5 text-[0.68rem] font-bold uppercase tracking-[0.12em] rounded-full bg-gray-200 text-gray-400 cursor-not-allowed"
+                        >
+                          Out of Stock
+                        </button>
+                      ) : (
+                        <button
+                          onClick={(e) => handleAdd(product, e)}
+                          className={`w-full mt-3 py-2.5 text-[0.68rem] font-bold uppercase tracking-[0.12em] rounded-full transition-all duration-300 ${
+                            added.includes(product.productId) 
+                              ? "bg-gradient-to-r from-purple-500 to-purple-400 text-white shadow-md" 
+                              : "border-2 border-purple-200 text-gray-500 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-400 hover:border-transparent hover:text-white hover:shadow-md"
+                          }`}
+                        >
+                          {added.includes(product.productId) ? "Added! ✓" : "Add to Cart"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
           
@@ -399,3 +649,4 @@ const styles = `
   to { transform: rotate(360deg); }
 }
 `;
+export default CategoryPage;

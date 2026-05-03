@@ -45,6 +45,9 @@ app.use(cors({
     'http://localhost:5173',
     'https://aazhiweb.vercel.app',
     'https://theaazhi.com',
+    'https://tiinyberryy.vercel.app',
+    'https://aazhi1.vercel.app'  // ← ADD THIS LINE (YOUR CURRENT FRONTEND URL)
+    // Add any other frontend URLs you're using
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

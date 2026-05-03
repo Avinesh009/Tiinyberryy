@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { CartProvider } from "@/context/CartProvider";
 //import ReactGA from "react-ga4";
+import ReactGA from "react-ga4";
 import Index from "@/pages/Index";
 import CategoryPage from "@/pages/CategoryPage";  
 import ProductDetails from "@/pages/ProductDetails";
@@ -23,6 +24,12 @@ import CombosPage from "@/pages/Combospage";
   //useEffect(() => {
     // Track page view whenever the URL changes
     /*ReactGA.send({
+const PageTracker = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Track page view whenever the URL changes
+    ReactGA.send({
       hitType: "pageview",
       page: location.pathname + location.search,
     });
@@ -30,12 +37,14 @@ import CombosPage from "@/pages/Combospage";
 
   return null;
 };*/
+};
 
 function App() {
   return (
     <CartProvider>
       <Router>
       
+        <PageTracker />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/category/:type/:value" element={<CategoryPage />} />
