@@ -34,8 +34,6 @@ interface Product {
   sizes?: Size[] | string[];
   colors?: Color[];
   subcategory?: string;
-  inStock?: boolean;        // ← ADD THIS
-  stockQuantity?: number;   // ← ADD THIS (optional)
   inStock?: boolean;
   stockQuantity?: number;
 }
@@ -382,47 +380,6 @@ const CategoryPage = () => {
           )}
 
           {!loading && !error && products.length > 0 && (
-  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-    {products.map((product) => (
-      <div 
-        key={product.productId} 
-        className={`group cursor-pointer transition-all duration-300 hover:-translate-y-1 ${
-          product.inStock === false ? 'opacity-70' : ''
-        }`}
-        onClick={() => handleProductClick(product.productId)}
-      >
-        <div className="relative overflow-hidden rounded-xl bg-purple-50/50" style={{ aspectRatio: "3/4" }}>
-          <img 
-            src={product.image || defaultImage} 
-            alt={product.name} 
-            loading="lazy" 
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = defaultImage;
-            }}
-          />
-          
-          {/* Existing Badge (Sale, New, etc.) */}
-          {product.badge && product.inStock !== false && (
-            <span className="absolute top-3 left-3 text-[0.58rem] font-bold uppercase tracking-[0.1em] px-2.5 py-1 rounded-full bg-gradient-to-r from-purple-500 to-purple-400 text-white shadow-md">
-              {product.badge}
-            </span>
-          )}
-          
-          {/* LOW STOCK BADGE - NEW (shows when quantity is 10 or less) */}
-          {product.inStock !== false && product.stockQuantity !== undefined && product.stockQuantity <= 10 && product.stockQuantity > 0 && (
-            <span className="absolute top-3 right-3 text-[0.58rem] font-bold uppercase tracking-[0.1em] px-2.5 py-1 rounded-full bg-orange-500 text-white shadow-md animate-pulse">
-              Only {product.stockQuantity} left!
-            </span>
-          )}
-          
-          {/* OUT OF STOCK BADGE */}
-          {product.inStock === false && (
-            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center">
-              <span className="text-white font-bold text-sm uppercase tracking-wider px-4 py-2 bg-red-600 rounded-full rotate-12 shadow-lg">
-                Out of Stock
-              </span>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {products.map((product) => {
                 const inStock = isProductInStock(product);
@@ -552,78 +509,6 @@ const CategoryPage = () => {
               })}
             </div>
           )}
-          
-          {/* Wishlist Button - Hide for out of stock products */}
-          {product.inStock !== false && (
-            <button
-              onClick={(e) => toggleWish(product.productId, e)}
-              className={`absolute bottom-3 right-3 w-8 h-8 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110 ${
-                wishlisted.includes(product.productId) ? "text-red-500" : "text-gray-400 hover:text-red-500"
-              }`}
-              aria-label="Wishlist"
-            >
-              <Heart size={14} fill={wishlisted.includes(product.productId) ? "currentColor" : "none"} />
-            </button>
-          )}
-        </div>
-        
-        <div className="mt-3.5">
-          <h3 className="text-base font-medium text-[#1e1b4b] leading-snug font-heading hover:text-purple-600 transition-colors duration-200">
-            {product.name}
-          </h3>
-          {product.description && (
-            <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-              {product.description}
-            </p>
-          )}
-          
-          <div className="mt-1.5 flex items-center gap-2">
-            <span className={`text-[0.85rem] font-bold ${
-              product.inStock === false 
-                ? 'text-gray-400' 
-                : 'bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent'
-            }`}>
-              Rs. {product.price.toLocaleString()}
-            </span>
-            {product.originalPrice && (
-              <span className="text-[0.78rem] text-gray-400 line-through">
-                Rs. {product.originalPrice.toLocaleString()}
-              </span>
-            )}
-          </div>
-          
-          {/* LOW STOCK TEXT WARNING below price */}
-          {product.inStock !== false && product.stockQuantity !== undefined && product.stockQuantity <= 10 && product.stockQuantity > 0 && (
-            <p className="text-xs text-orange-600 font-medium mt-1 animate-pulse">
-              ⚡ Only {product.stockQuantity} left in stock - order soon!
-            </p>
-          )}
-          
-          {/* Add to Cart Button - Disabled for out of stock */}
-          {product.inStock === false ? (
-            <button
-              disabled
-              className="w-full mt-3 py-2.5 text-[0.68rem] font-bold uppercase tracking-[0.12em] rounded-full bg-gray-200 text-gray-400 cursor-not-allowed"
-            >
-              Out of Stock
-            </button>
-          ) : (
-            <button
-              onClick={(e) => handleAdd(product, e)}
-              className={`w-full mt-3 py-2.5 text-[0.68rem] font-bold uppercase tracking-[0.12em] rounded-full transition-all duration-300 ${
-                added.includes(product.productId) 
-                  ? "bg-gradient-to-r from-purple-500 to-purple-400 text-white shadow-md" 
-                  : "border-2 border-purple-200 text-gray-500 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-400 hover:border-transparent hover:text-white hover:shadow-md"
-              }`}
-            >
-              {added.includes(product.productId) ? "Added! ✓" : "Add to Cart"}
-            </button>
-          )}
-        </div>
-      </div>
-    ))}
-  </div>
-)}
         </div>
       </main>
       <Footer />
@@ -632,21 +517,4 @@ const CategoryPage = () => {
   );
 };
 
-export default CategoryPage;
-
-/* Add this to your global CSS or component styles */
-const styles = `
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-`;
 export default CategoryPage;
