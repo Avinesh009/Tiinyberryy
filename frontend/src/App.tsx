@@ -36,8 +36,8 @@ const PageTracker = () => {
   }, [location]);
 
   return null;
-};*/
 };
+};*/
 
 function App() {
   return (
