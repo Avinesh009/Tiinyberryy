@@ -134,7 +134,6 @@ const AdminDashboard = () => {
     setShowOrderDetails(true);
   };
 
-  const printInvoice = (order: any) => {
 const printInvoice = (order: any) => {
   const invoiceHtml = `
     <!DOCTYPE html>
@@ -455,8 +454,9 @@ const printInvoice = (order: any) => {
           </div>
         )}
 
-        {/* Orders Tab */}
+        {/* Orders Tab - Same as before */}
         {activeTab === 'orders' && (
+          // ... (keep your existing orders tab code)
           <div>
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold">Orders Management</h1>
@@ -562,6 +562,7 @@ const printInvoice = (order: any) => {
                       <X size={24} />
                     </button>
                   </div>
+                  {/* Order details content */}
                   <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
                     <div>
                       <p className="text-sm text-muted-foreground">Order Number</p>
@@ -597,6 +598,7 @@ const printInvoice = (order: any) => {
                       </select>
                     </div>
                   </div>
+                  {/* Add more order details as needed */}
                 </div>
               </div>
             )}
