@@ -56,6 +56,35 @@ const ProductDetails = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { addToCart } = useCart();
 
+  // Helper function to format description text into bullet points
+  const formatDescription = (description: string | undefined): string[] => {
+    if (!description) return [];
+    
+    // Check if description contains numbered list (e.g., "1. ", "2. ")
+    if (description.match(/\d+\.\s/)) {
+      // Split by numbered items (e.g., "1. ", "2. ", etc.)
+      const items = description.split(/\d+\.\s/).filter(item => item.trim().length > 0);
+      return items.map(item => item.trim());
+    }
+    
+    // Check if description contains bullet points (e.g., "• ", "- ", "* ")
+    if (description.match(/[•\-*]\s/)) {
+      const items = description.split(/[•\-*]\s/).filter(item => item.trim().length > 0);
+      return items.map(item => item.trim());
+    }
+    
+    // Check if description contains line breaks (each line is a bullet point)
+    if (description.includes('\n')) {
+      const lines = description.split('\n').filter(line => line.trim().length > 0);
+      if (lines.length > 1) {
+        return lines.map(line => line.trim());
+      }
+    }
+    
+    // If no list format detected, return as single item
+    return [description];
+  };
+
   useEffect(() => {
     const fetchProduct = async () => {
       setLoading(true);
@@ -345,6 +374,7 @@ const ProductDetails = () => {
   };
   
   const outOfStock = isOutOfStock();
+  const descriptionBullets = formatDescription(product?.description);
 
   if (loading) {
     return (
@@ -491,9 +521,28 @@ const ProductDetails = () => {
                 )}
               </div>
 
-              <p className="text-gray-600 leading-relaxed mb-6">
-                {product.description || "Crafted with love from 100% organic cotton muslin, luxuriously soft and breathable for ultimate comfort."}
-              </p>
+              {/* Product Description - Formatted as Bullet Points */}
+              <div className="mb-6">
+                {descriptionBullets.length === 1 ? (
+                  <p className="text-gray-600 leading-relaxed">
+                    {descriptionBullets[0]}
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-semibold text-[#1e1b4b] mb-3">Product Features</h3>
+                    <ul className="space-y-2">
+                      {descriptionBullets.map((bullet, index) => (
+                        <li key={index} className="flex items-start gap-2 text-gray-600">
+                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-purple-100 text-purple-600 text-xs font-bold flex-shrink-0 mt-0.5">
+                            ✓
+                          </span>
+                          <span className="leading-relaxed">{bullet}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
 
               {hasColors && !outOfStock && (
                 <div className="mb-6">
@@ -516,7 +565,7 @@ const ProductDetails = () => {
                             className="group flex flex-col items-center gap-1 transition-all flex-shrink-0"
                           >
                             <div
-                              className={`w-14 h-14 rounded-full border-2 transition-all duration-200 ${
+                              className={`w-14 h-14 rounded-full border-2 transition-all duration-200 relative ${
                                 selectedColor?.name === color.name
                                   ? 'border-purple-500 scale-110 shadow-lg'
                                   : 'border-gray-200 group-hover:border-purple-400 group-hover:scale-105'
