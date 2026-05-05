@@ -325,7 +325,7 @@ const ProductDetails = () => {
 
   const defaultImage = "https://images.unsplash.com/photo-1522771930-78848d9293e8?w=600&h=800&fit=crop";
   const currentImages = selectedColor?.images || product?.images || [product?.image || defaultImage];
-  const hasMultipleImages = currentImages.length > 1;
+  const hasMultipleImages = currentImages.length >= 1;
   const hasColors = product?.colors && product.colors.length > 0;
   const stockStatus = getStockStatus();
   
