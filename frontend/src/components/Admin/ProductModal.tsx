@@ -719,6 +719,36 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSave, pr
             )}
           </div>
           
+          {/* Stock Information */}
+          // In ProductModal.tsx - Add these fields
+<div className="grid grid-cols-2 gap-4">
+  <div>
+    <label className="block text-sm font-medium mb-1">Stock Status</label>
+    <select
+      value={formData.inStock ? 'in-stock' : 'out-of-stock'}
+      onChange={(e) => setFormData({ ...formData, inStock: e.target.value === 'in-stock' })}
+      className="w-full px-3 py-2 border rounded-lg"
+    >
+      <option value="in-stock">In Stock</option>
+      <option value="out-of-stock">Out of Stock</option>
+    </select>
+  </div>
+  
+  {formData.inStock && (
+    <div>
+      <label className="block text-sm font-medium mb-1">Stock Quantity</label>
+      <input
+        type="number"
+        value={formData.stockQuantity || 0}
+        onChange={(e) => setFormData({ ...formData, stockQuantity: parseInt(e.target.value) || 0 })}
+        className="w-full px-3 py-2 border rounded-lg"
+        min="0"
+      />
+    </div>
+  )}
+</div>
+          
+          {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4 border-t sticky bottom-0 bg-white">
             <button 
               type="button" 

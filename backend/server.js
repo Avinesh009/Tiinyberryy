@@ -32,13 +32,21 @@ const PORT = process.env.PORT || 5000;
 
 // CORS configuration this is for main hosting
 // CORS configuration
+// CORS configuration - REPLACE your current cors() setup with this:
+
+// Enable preflight for all routes
+app.options('*', cors()); // This handles OPTIONS preflight requests
+
+// Your main CORS configuration
 app.use(cors({
   origin: [
     'http://localhost:8080', 
     'http://127.0.0.1:8080', 
     'http://localhost:5173',
+    'https://aazhiweb.vercel.app',
+    'https://theaazhi.com',
     'https://tiinyberryy.vercel.app',
-    'https://aazhi1.vercel.app'  // ← ADD THIS LINE (YOUR CURRENT FRONTEND URL)
+    'https://aazhiweb.onrender.com/'  // ← ADD THIS LINE (YOUR CURRENT FRONTEND URL)
     // Add any other frontend URLs you're using
   ],
   credentials: true,
